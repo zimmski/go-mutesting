@@ -1,0 +1,31 @@
+language: go
+
+go:
+  - 1.4
+
+install:
+  # tools
+  - make tools
+
+  # project
+  - make dependencies
+  - make install
+
+script:
+  # linting
+  - $(exit $(gofmt -l . | wc -l))
+  - errcheck github.com/zimmski/go-mutesting/...
+  - $(exit $(go tool vet -all=true -v=true . 2>&1 | grep --invert-match -P "(Checking file|\%p of wrong type|can't check non-constant format)" | wc -l))
+  - $(exit $(golint ./... | grep --invert-match -P "(_string.go:)" | wc -l))
+
+  # project
+  - make test
+
+  # code coverage
+  - ginkgo -r -cover -skipPackage="testdata"
+  - gover
+  - if [ "$TRAVIS_SECURE_ENV_VARS" = "true" ]; then goveralls -coverprofile=gover.coverprofile -service=travis-ci -repotoken $COVERALLS_TOKEN; fi
+
+env:
+  # coveralls.io
+  secure: "CPuDl59GuLvd8BFbJwuy2mynpN4e9l2LAPF42yaf8b9HQIYQPrSeycqQAIDPQgKhk4x3/FbX1JrvieTP/P2hx+alxJv6tvEvh/aGg91h/dgLpUHiIvBQfa7viUKZrxkER3pQg30Ql2fMJOz8gKPWyB0mNvm5Eh4ysdjJmILTGuM="
