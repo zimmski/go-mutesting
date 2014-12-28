@@ -134,7 +134,10 @@ MUTATOR:
 	}
 	verbose("Save mutations into %q", tmpDir)
 
-	execs := strings.Split(opts.Exec.Exec, " ")
+	var execs []string
+	if opts.Exec.Exec != "" {
+		strings.Split(opts.Exec.Exec, " ")
+	}
 
 	passed := 0
 	failed := 0
@@ -255,7 +258,11 @@ MUTATOR:
 		verbose("Remove %q", tmpDir)
 	}
 
-	fmt.Printf("The mutation score is %f (%d passed, %d failed, %d skipped, total is %d)\n", float64(passed)/float64(passed+failed), passed, failed, skipped, passed+failed+skipped)
+	if len(execs) != 0 {
+		fmt.Printf("The mutation score is %f (%d passed, %d failed, %d skipped, total is %d)\n", float64(passed)/float64(passed+failed), passed, failed, skipped, passed+failed+skipped)
+	} else {
+		fmt.Println("Cannot do a mutation testing summary since no exec command was given.")
+	}
 
 	os.Exit(returnOk)
 }
