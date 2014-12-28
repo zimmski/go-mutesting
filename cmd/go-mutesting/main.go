@@ -136,7 +136,7 @@ MUTATOR:
 
 	var execs []string
 	if opts.Exec.Exec != "" {
-		strings.Split(opts.Exec.Exec, " ")
+		execs = strings.Split(opts.Exec.Exec, " ")
 	}
 
 	passed := 0
