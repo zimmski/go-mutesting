@@ -33,6 +33,6 @@ DONE- CMD
 DONE	+ Kann wie Golint auf alles mögliche angewendet werden: einzelne Dateien, Ordner, Packages, mit Patterns
 DONE	+ Standardmäßig sind alle Mutator aktiviert, man kann sie aber einzeln oder per Pattern deaktivieren
 DONE	+ Mutatoren werden deterministisch ausgeführt, und zwar nach name sortiert
-	+ Skript kann angegeben werden welches die Mutation überprüfen soll, hat drei Antwortmöglichkeiten: Passed, Failed und wenn etwas mit der Mutation nicht passt "Skipped"
-	+ Abbrechen von CMD stellt originalzustand wieder her
-	+ mutation score = number of mutants killed / total number of mutants
+DONE	+ Skript kann angegeben werden welches die Mutation überprüfen soll, hat drei Antwortmöglichkeiten: Passed, Failed und wenn etwas mit der Mutation nicht passt "Skipped"
+DONE	+ mutation score = number of mutants killed / total number of mutants
+- Testscript schreiben für basis sachen -> projekt vom aktuellen ordner testen + datei austauschen bzw austausch rückgängig machen

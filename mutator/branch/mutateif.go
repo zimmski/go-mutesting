@@ -13,7 +13,7 @@ func NewMutatorIf() *MutatorIf {
 }
 
 func init() {
-	mutator.Register("branch/if", func() mutator.Mutator {
+	mutator.Register(MutatorIf{}.String(), func() mutator.Mutator {
 		return NewMutatorIf()
 	})
 }
@@ -48,4 +48,8 @@ func (m *MutatorIf) Mutate(node ast.Node, changed chan bool) {
 
 	changed <- true
 	<-changed
+}
+
+func (m MutatorIf) String() string {
+	return "branch/if"
 }

@@ -13,7 +13,7 @@ func NewMutatorElse() *MutatorElse {
 }
 
 func init() {
-	mutator.Register("branch/else", func() mutator.Mutator {
+	mutator.Register(MutatorElse{}.String(), func() mutator.Mutator {
 		return NewMutatorElse()
 	})
 }
@@ -24,7 +24,7 @@ func (m *MutatorElse) check(node ast.Node) (*ast.IfStmt, bool) {
 		return nil, false
 	}
 
-	// if it is an else if or the block is nil
+	// we ignore else ifs and nil blocks
 	_, ok = n.Else.(*ast.IfStmt)
 	if ok || n.Else == nil {
 		return nil, false
@@ -59,4 +59,8 @@ func (m *MutatorElse) Mutate(node ast.Node, changed chan bool) {
 
 	changed <- true
 	<-changed
+}
+
+func (m MutatorElse) String() string {
+	return "branch/else"
 }
