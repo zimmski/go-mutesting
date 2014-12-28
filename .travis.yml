@@ -28,4 +28,4 @@ script:
 
 env:
   # coveralls.io
-  secure: "dP6L3JuNurqzCkBkSvEQTQJnKyDrsSIOsnidxWSoI2m5gfFOFN8YlEu+LPOWP3vXbtRFAybKbIGDaCWXI4vBp2NZB8y0DRJYXYFMUmvMcNictCIQIRKl4JNPt/ba63WGFF0uFAp3DHzATYcWQw7KDaw57E1yp/GbLDbtceF4B3o="
+  secure: "QjVY+pV3C84lbi9zsFcRllZ+8a9BcqUmhZw9LmGGczDdAiC/sRMiAk7E9uFuONzyQcZU9E2ayRkji+30tCT7F1+yPgE8uBxXL/JgOqKe8rG7UyUt2DchdQLNGE13hyp258cGIuLjnP7NwNXEisA2ocaZhPS/KzBTdoLS+Q3G3p0="
