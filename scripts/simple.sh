@@ -21,6 +21,8 @@ case $GOMUTESTING_RESULT in
 	exit 0
 	;;
 *) # Unkown exit code
+	echo "$GOMUTESTING_DIFF"
+
 	exit $GOMUTESTING_RESULT
 	;;
 esac
