@@ -36,6 +36,7 @@ const (
 
 var opts struct {
 	General struct {
+		Debug                bool `long:"debug" description:"Debug log output"`
 		DoNotRemoveTmpFolder bool `long:"do-not-remove-tmp-folder" description:"Do not remove the tmp folder where all mutations are saved to"`
 		Help                 bool `long:"help" description:"Show this help message"`
 		Verbose              bool `long:"verbose" description:"Verbose log output"`
@@ -88,8 +89,14 @@ func checkArguments() {
 	}
 }
 
+func debug(format string, args ...interface{}) {
+	if opts.General.Debug {
+		fmt.Printf(format+"\n", args...)
+	}
+}
+
 func verbose(format string, args ...interface{}) {
-	if opts.General.Verbose {
+	if opts.General.Verbose || opts.General.Debug {
 		fmt.Printf(format+"\n", args...)
 	}
 }
@@ -122,7 +129,7 @@ MUTATOR:
 			}
 		}
 
-		verbose("Enable mutator %q", name)
+		debug("Enable mutator %q", name)
 
 		m, _ := mutator.New(name)
 		mutators = append(mutators, m)
@@ -132,7 +139,7 @@ MUTATOR:
 	if err != nil {
 		panic(err)
 	}
-	verbose("Save mutations into %q", tmpDir)
+	debug("Save mutations into %q", tmpDir)
 
 	var execs []string
 	if opts.Exec.Exec != "" {
@@ -144,7 +151,7 @@ MUTATOR:
 	skipped := 0
 
 	for _, file := range files {
-		verbose("Mutate %q", file)
+		debug("Mutate %q", file)
 
 		src, fset, err := mutesting.ParseFile(file)
 		if err != nil {
@@ -163,12 +170,12 @@ MUTATOR:
 		if err != nil {
 			panic(err)
 		}
-		verbose("Save original into %q", originalFile)
+		debug("Save original into %q", originalFile)
 
 		i := 0
 
 		for _, m := range mutators {
-			verbose("Mutator %s", m)
+			debug("Mutator %s", m)
 
 			changed := mutesting.MutateWalk(src, m)
 
@@ -184,22 +191,20 @@ MUTATOR:
 				if err != nil {
 					panic(err)
 				}
-				verbose("Save mutation into %q", mutationFile)
+				debug("Save mutation into %q", mutationFile)
 
 				if len(execs) != 0 {
-					verbose("Execute %q for mutation", opts.Exec.Exec)
+					debug("Execute %q for mutation", opts.Exec.Exec)
 
 					execCommand := exec.Command(execs[0], execs[1:]...)
 
-					if opts.General.Verbose {
-						execCommand.Stderr = os.Stderr
-						execCommand.Stdout = os.Stdout
-					}
+					execCommand.Stderr = os.Stderr
+					execCommand.Stdout = os.Stdout
 
-					execCommand.Env = []string{
+					execCommand.Env = append(os.Environ(), []string{
 						"MUTATE_ORIGINAL=" + file,
 						"MUTATE_CHANGED=" + mutationFile,
-					}
+					}...)
 
 					err = execCommand.Start()
 					if err != nil {
@@ -219,7 +224,7 @@ MUTATOR:
 						panic(err)
 					}
 
-					verbose("Exited with %d", execExitCode)
+					debug("Exited with %d", execExitCode)
 
 					switch execExitCode {
 					case 0:
@@ -255,7 +260,7 @@ MUTATOR:
 		if err != nil {
 			panic(err)
 		}
-		verbose("Remove %q", tmpDir)
+		debug("Remove %q", tmpDir)
 	}
 
 	if len(execs) != 0 {
