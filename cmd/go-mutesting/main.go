@@ -42,6 +42,10 @@ var opts struct {
 		Verbose              bool `long:"verbose" description:"Verbose log output"`
 	} `group:"General options"`
 
+	Files struct {
+		ListFiles bool `long:"list-files" description:"List found files"`
+	} `group:"File options"`
+
 	Mutator struct {
 		DisableMutators []string `long:"disable" description:"Disable mutator or mutators using * as a suffix pattern"`
 		ListMutators    bool     `long:"list-mutators" description:"List all available mutators"`
@@ -113,6 +117,14 @@ func main() {
 	files := importing.FilesOfArgs(opts.Remaining.Targets)
 	if len(files) == 0 {
 		exitError("Could not find any suitable Go source files")
+	}
+
+	if opts.Files.ListFiles {
+		for _, file := range files {
+			fmt.Println(file)
+		}
+
+		os.Exit(returnOk)
 	}
 
 	var mutators []mutator.Mutator
