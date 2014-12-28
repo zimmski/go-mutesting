@@ -13,6 +13,8 @@ import (
 	"github.com/zimmski/go-mutesting/mutator"
 )
 
+// Mutator tests a mutator.
+// It mutates the given original file with the given mutator. Every mutation is then validated with the given changed file. The mutation overall count is validated with the given count.
 func Mutator(t *testing.T, originalFilePath string, changedFilePath string, m mutator.Mutator, count uint) {
 	originalFile, err := ioutil.ReadFile(originalFilePath)
 	assert.Nil(t, err)

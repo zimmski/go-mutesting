@@ -19,6 +19,7 @@ import (
 	"strings"
 )
 
+// FilesOfArgs returns all available Go files given a list of packages, directories and files which can embed patterns.
 func FilesOfArgs(args []string) []string {
 	var filenames []string
 
