@@ -12,15 +12,21 @@ export GOMUTESTING_RESULT=$?
 mv $MUTATE_ORIGINAL.tmp $MUTATE_ORIGINAL
 
 case $GOMUTESTING_RESULT in
-0)
+0) # tests passed -> FAIL
 	echo "$GOMUTESTING_DIFF"
 
 	exit 1
 	;;
-1)
+1) # tests failed -> PASS
 	exit 0
 	;;
-*) # Unkown exit code
+2) # did not compile -> SKIP
+	echo "Mutation did not compile"
+	echo "$GOMUTESTING_DIFF"
+
+	exit 2
+	;;
+*) # Unkown exit code -> SKIP
 	echo "$GOMUTESTING_DIFF"
 
 	exit $GOMUTESTING_RESULT
