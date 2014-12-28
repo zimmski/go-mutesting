@@ -19,7 +19,7 @@ func ParseFile(f string) (*ast.File, *token.FileSet, error) {
 func ParseSource(src interface{}) (*ast.File, *token.FileSet, error) {
 	fset := token.NewFileSet()
 
-	f, err := parser.ParseFile(fset, "", src, 0)
+	f, err := parser.ParseFile(fset, "", src, parser.ParseComments|parser.AllErrors)
 
 	return f, fset, err
 }

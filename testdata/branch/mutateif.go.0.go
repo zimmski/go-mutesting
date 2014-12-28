@@ -1,3 +1,5 @@
+// +build example-main
+
 package main
 
 import (
