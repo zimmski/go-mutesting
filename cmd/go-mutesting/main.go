@@ -52,7 +52,8 @@ var opts struct {
 	} `group:"Mutator options"`
 
 	Exec struct {
-		Exec string `long:"exec" description:"Execute this command for every mutation"`
+		Exec    string `long:"exec" description:"Execute this command for every mutation"`
+		Timeout uint   `long:"exec-timeout" description:"Sets a timeout for the command execution (in seconds)" default:"10"`
 	} `group:"Exec options"`
 
 	Remaining struct {
@@ -214,8 +215,9 @@ MUTATOR:
 					execCommand.Stdout = os.Stdout
 
 					execCommand.Env = append(os.Environ(), []string{
-						"MUTATE_ORIGINAL=" + file,
 						"MUTATE_CHANGED=" + mutationFile,
+						"MUTATE_ORIGINAL=" + file,
+						fmt.Sprintf("MUTATE_TIMEOUT=%d", opts.Exec.Timeout),
 					}...)
 
 					err = execCommand.Start()

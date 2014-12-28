@@ -5,7 +5,9 @@ export GOMUTESTING_DIFF=$(diff -u $MUTATE_ORIGINAL $MUTATE_CHANGED)
 mv $MUTATE_ORIGINAL $MUTATE_ORIGINAL.tmp
 cp $MUTATE_CHANGED $MUTATE_ORIGINAL
 
-go test ./... > /dev/null
+export MUTATE_TIMEOUT=${MUTATE_TIMEOUT:-10}
+
+go test -timeout $(printf '%ds' $MUTATE_TIMEOUT) ./... > /dev/null
 
 export GOMUTESTING_RESULT=$?
 

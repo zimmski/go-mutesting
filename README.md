@@ -19,6 +19,7 @@ TODO
 		* https://github.com/StefanSchroeder/Golang-Mutation-testing
 		* drittes -> siehe git clone ordner
 		* https://groups.google.com/forum/?fromgroups=#!topic/golang-nuts/R2VCbCPA6ZE auch erwähnen
+	+ Timeouts sind erfolgreiche Fehler, daher wenn ein Timeout passiert wegen eine Mutation ist es ein PASS für die mutation
 DONE- Wir wollen folgendes unterstützen
 	+ Statements löschen die löschbar sind, das heißt
 		* Keine Deklarationen aller Art
