@@ -15,7 +15,9 @@ import (
 
 // Mutator tests a mutator.
 // It mutates the given original file with the given mutator. Every mutation is then validated with the given changed file. The mutation overall count is validated with the given count.
-func Mutator(t *testing.T, testFile string, m mutator.Mutator, count uint) {
+func Mutator(t *testing.T, m mutator.Mutator, testFile string, count uint) {
+	assert.NotNil(t, m)
+
 	originalFile, err := ioutil.ReadFile(testFile)
 	assert.Nil(t, err)
 
