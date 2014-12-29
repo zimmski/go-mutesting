@@ -35,11 +35,14 @@ func (m *MutatorElse) check(node ast.Node) (*ast.IfStmt, bool) {
 	return n, true
 }
 
-// Check validates if a given node can be mutated by the mutator
-func (m *MutatorElse) Check(node ast.Node) bool {
+// Check validates how often a node can be mutated by a mutator
+func (m *MutatorElse) Check(node ast.Node) uint {
 	_, ok := m.check(node)
+	if !ok {
+		return 0
+	}
 
-	return ok
+	return 1
 }
 
 // Mutate mutates a given node if it can be mutated by the mutator.

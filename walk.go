@@ -3,12 +3,13 @@ package mutesting
 import (
 	"fmt"
 	"go/ast"
+	"strings"
 
 	"github.com/zimmski/go-mutesting/mutator"
 )
 
-// CountWalk returns the number of corresponding nodes for a given mutator.
-// It traverses the AST of the given node and calls the method Check of the given mutator for every node. If Check returns true an internal counter is increment. After completion of the traversal the final counter is returned.
+// CountWalk returns the number of corresponding mutations for a given mutator.
+// It traverses the AST of the given node and calls the method Check of the given mutator for every node and sums up the returned counts. After completion of the traversal the final counter is returned.
 func CountWalk(node ast.Node, m mutator.Mutator) uint {
 	w := &countWalk{
 		count:   0,
@@ -27,8 +28,12 @@ type countWalk struct {
 
 // Visit implements the Visit method of the ast.Visitor interface
 func (w *countWalk) Visit(node ast.Node) ast.Visitor {
-	if w.mutator.Check(node) {
-		w.count++
+	if node == nil {
+		return w
+	}
+
+	if n := w.mutator.Check(node); n > 0 {
+		w.count += n
 	}
 
 	return w
@@ -58,7 +63,11 @@ type mutateWalk struct {
 
 // Visit implements the Visit method of the ast.Visitor interface
 func (w *mutateWalk) Visit(node ast.Node) ast.Visitor {
-	if w.mutator.Check(node) {
+	if node == nil {
+		return w
+	}
+
+	if w.mutator.Check(node) > 0 {
 		w.mutator.Mutate(node, w.changed)
 	}
 
