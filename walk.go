@@ -67,16 +67,26 @@ func (w *mutateWalk) Visit(node ast.Node) ast.Visitor {
 
 // PrintWalk traverses the AST of the given node and prints every node to STDOUT.
 func PrintWalk(node ast.Node) {
-	w := &printWalk{}
+	w := &printWalk{
+		level: 0,
+	}
 
 	ast.Walk(w, node)
 }
 
-type printWalk struct{}
+type printWalk struct {
+	level int
+}
 
 // Visit implements the Visit method of the ast.Visitor interface
 func (w *printWalk) Visit(node ast.Node) ast.Visitor {
-	fmt.Printf("%#v\n", node)
+	if node != nil {
+		w.level++
+
+		fmt.Printf("%s(%p)%#v\n", strings.Repeat("\t", w.level), node, node)
+	} else {
+		w.level--
+	}
 
 	return w
 }
