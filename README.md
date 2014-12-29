@@ -11,7 +11,7 @@ cd $GOPATH/src/github.com/zimmski/go-mutesting
 go-mutesting --exec "$GOPATH/src/github.com/zimmski/go-mutesting/scripts/simple.sh" --exec-timeout 1 github.com/zimmski/go-mutesting/...
 ```
 
-The execution of the command outputs for every mutation if it was successfully tested or not. If not, the source code diff is printed out so the mutation can be investigated. The following shows and example for a diff of a mutation for the go-mutesting project itself.
+The execution of the command outputs for every mutation if it was successfully tested or not. If not, the source code diff is printed out so the mutation can be investigated. The following shows an example for a diff of a mutation for the go-mutesting project itself.
 
 ```diff
 @@ -155,7 +155,7 @@
@@ -48,7 +48,7 @@ The definition of mutation testing is best quoted from Wikipedia:
 
 Although the definition states that the main purpose of mutation testing is finding implementation cases which are not covered by tests, other implementation flaws can be found too. Mutation testing can for example uncover dead and unneeded code.
 
-Mutation testing is also especially interesting for comparing automatically generated test suites with hand written test suites. This was the original intention of go-mutesting which is used to evaluate the generic fuzzing and delta-debugging framework [Tavor](https://github.com/zimmski/tavor).
+Mutation testing is also especially interesting for comparing automatically generated test suites with manually written test suites. This was the original intention of go-mutesting which is used to evaluate the generic fuzzing and delta-debugging framework [Tavor](https://github.com/zimmski/tavor).
 
 ## <a name="how-do-i-use-go-mutesting"></a>How do I use go-mutesting?
 
@@ -102,7 +102,7 @@ The mutation score is 0.750000 (3 passed, 1 failed, 0 skipped, total is 4)
 
 The output shows that four mutations have been found and tested. Three of them passed which means that the test suite failed for these mutations and the mutations were therefore killed. However, one mutation did not fail the test suite. Its source code diff is shown in the output which can be used to investigate the mutation.
 
-The summary also shows the **mutation score** which is an metric on how many mutations are killed by the test suite and therefore states the quality of the test suite. The mutation score is calculated by dividing the amount of all passed mutations with the amount of mutations that passed plus the amount of mutations that failed. A score of 1.0 therefore means that all mutations have been killed.
+The summary also shows the **mutation score** which is a metric on how many mutations are killed by the test suite and therefore states the quality of the test suite. The mutation score is calculated by dividing the amount of all passed mutations with the amount of mutations that passed plus the amount of mutations that failed. A score of 1.0 therefore means that all mutations have been killed.
 
 ## <a name="write-mutation-exec-commands"></a>How do I write my own mutation exec commands?
 
@@ -110,7 +110,7 @@ A mutation exec command is invoked for every mutation which is necessary to test
 
 1. **Setup** the source to include the mutation.
 2. **Test** the source by invoking the test suite and possible other test functionality.
-3. **Cleanup** revert all changes and remove all temporary assets.
+3. **Cleanup** all changes and remove all temporary assets.
 4. **Report** if the mutation was detected.
 
 It is important to note that each invocation should be isolated and therefore stateless. This means that an invocation must not disturb other invocations.
@@ -119,8 +119,8 @@ The command is given a set of environment variables which define exactly one mut
 
 | Name            | Description                                                    |
 | :-------------- | :------------------------------------------------------------- |
-| MUTATE_ORIGINAL | Defines the filepath to the original file which was mutated.   |
-| MUTATE_CHANGED  | Defines the filepath to the mutation of the original file.     |
+| MUTATE_ORIGINAL | Defines the filename to the original file which was mutated.   |
+| MUTATE_CHANGED  | Defines the filename to the mutation of the original file.     |
 | MUTATE_TIMEOUT  | Defines a timeout which should be honored by the exec command. |
 
 A command must exit with an appropriate exit code.
@@ -148,6 +148,12 @@ Examples for exec commands can be found in the [scripts](/scripts) directory.
 | Name                | Description                                    |
 | :------------------ | :--------------------------------------------- |
 | expression/remove   | Searches for `&&` and <code>\|\|</code> operators and makes each term of the operator irrelevant by using `true` or `false` as replacements. |
+
+### Statement mutators
+
+| Name                | Description                                    |
+| :------------------ | :--------------------------------------------- |
+| statement/remove    | Removes assignment, increment, decrement and expression statements in block statements. |
 
 ## <a name="write-mutators"></a>How do I write my own mutators?
 

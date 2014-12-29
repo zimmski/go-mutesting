@@ -6,7 +6,7 @@ import (
 	"github.com/zimmski/go-mutesting/test"
 )
 
-func TestMutateIf(t *testing.T) {
+func TestMutatorIf(t *testing.T) {
 	test.Mutator(
 		t,
 		NewMutatorIf(),

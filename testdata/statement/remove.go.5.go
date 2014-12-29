@@ -1,3 +1,5 @@
+// +build example-main
+
 package example
 
 func foo() int {
@@ -5,7 +7,7 @@ func foo() int {
 
 	for i := 0; i < 3; i++ {
 		if i == 0 {
-			n++
+
 		} else if i == 1 {
 			n += 2
 		} else {

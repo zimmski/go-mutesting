@@ -6,7 +6,7 @@ import (
 	"github.com/zimmski/go-mutesting/test"
 )
 
-func TestMutateElse(t *testing.T) {
+func TestMutatorRemoveTerm(t *testing.T) {
 	test.Mutator(
 		t,
 		NewMutatorRemoveTerm(),

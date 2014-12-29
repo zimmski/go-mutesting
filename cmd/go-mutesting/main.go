@@ -22,6 +22,7 @@ import (
 	"github.com/zimmski/go-mutesting/mutator"
 	_ "github.com/zimmski/go-mutesting/mutator/branch"
 	_ "github.com/zimmski/go-mutesting/mutator/expression"
+	_ "github.com/zimmski/go-mutesting/mutator/statement"
 )
 
 const (
@@ -51,7 +52,7 @@ var opts struct {
 	} `group:"File options"`
 
 	Mutator struct {
-		DisableMutators []string `long:"disable" description:"Disable mutator or mutators using * as a suffix pattern"`
+		DisableMutators []string `long:"disable" description:"Disable mutator by their name or using * as a suffix pattern"`
 		ListMutators    bool     `long:"list-mutators" description:"List all available mutators"`
 	} `group:"Mutator options"`
 

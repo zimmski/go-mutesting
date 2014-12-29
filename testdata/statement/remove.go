@@ -1,3 +1,5 @@
+// +build example-main
+
 package example
 
 func foo() int {

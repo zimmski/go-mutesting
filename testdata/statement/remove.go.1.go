@@ -1,3 +1,5 @@
+// +build example-main
+
 package example
 
 func foo() int {
@@ -20,8 +22,6 @@ func foo() int {
 	}
 
 	n++
-
-	n += bar()
 
 	bar()
 	bar()

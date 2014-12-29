@@ -51,10 +51,11 @@ func Mutator(t *testing.T, m mutator.Mutator, testFile string, count uint) {
 		err = printer.Fprint(buf, fset, f)
 		assert.Nil(t, err)
 
-		changedFile, err := ioutil.ReadFile(fmt.Sprintf("%s.%d.go", testFile, i))
+		changedFilename := fmt.Sprintf("%s.%d.go", testFile, i)
+		changedFile, err := ioutil.ReadFile(changedFilename)
 		assert.Nil(t, err)
 
-		assert.Equal(t, string(changedFile), buf.String())
+		assert.Equal(t, string(changedFile), buf.String(), fmt.Sprintf("For change file %q", changedFilename))
 
 		changed <- true
 
