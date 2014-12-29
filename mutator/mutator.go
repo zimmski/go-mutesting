@@ -8,6 +8,8 @@ import (
 
 // Mutator defines a mutator for mutation testing
 type Mutator interface {
+	fmt.Stringer
+
 	// Check validates how often a node can be mutated by a mutator
 	Check(node ast.Node) uint
 	// Mutate mutates a given node if it can be mutated by the mutator.

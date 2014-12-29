@@ -16,22 +16,32 @@ import (
 // Mutator tests a mutator.
 // It mutates the given original file with the given mutator. Every mutation is then validated with the given changed file. The mutation overall count is validated with the given count.
 func Mutator(t *testing.T, m mutator.Mutator, testFile string, count uint) {
+	// test if mutator is not nil
 	assert.NotNil(t, m)
 
+	// test if the mutator is properly registered
+	mn, err := mutator.New(m.String())
+	assert.Nil(t, err)
+	assert.NotNil(t, mn)
+
+	// read and parse the original source code
 	originalFile, err := ioutil.ReadFile(testFile)
 	assert.Nil(t, err)
 
 	f, fset, err := mutesting.ParseSource(originalFile)
 	assert.Nil(t, err)
 
+	// count the actual mutations
 	n := mutesting.CountWalk(f, m)
 	assert.Equal(t, n, count)
 
+	// mutate a non relevant node
 	changed := make(chan bool)
 
 	go m.Mutate(f, changed)
 	assert.False(t, <-changed)
 
+	// mutate all relevant nodes -> test whole mutation process
 	changed = mutesting.MutateWalk(f, m)
 
 	for i := uint(0); i < count; i++ {
