@@ -48,8 +48,9 @@ var opts struct {
 	} `group:"General options"`
 
 	Files struct {
-		ListFiles bool `long:"list-files" description:"List found files"`
-		PrintAST  bool `long:"print-ast" description:"Print the ASTs of all given files and exit"`
+		Blacklist []string `long:"blacklist" description:"List of MD5 checksums of mutations which should be ignored. Each checksum must end with a new line character."`
+		ListFiles bool     `long:"list-files" description:"List found files"`
+		PrintAST  bool     `long:"print-ast" description:"Print the ASTs of all given files and exit"`
 	} `group:"File options"`
 
 	Mutator struct {
@@ -149,6 +150,27 @@ func main() {
 		}
 
 		os.Exit(returnOk)
+	}
+
+	if len(opts.Files.Blacklist) > 0 {
+		for _, f := range opts.Files.Blacklist {
+			c, err := ioutil.ReadFile(f)
+			if err != nil {
+				exitError("Cannot read blacklist file %q: %v", f, err)
+			}
+
+			for _, line := range strings.Split(string(c), "\n") {
+				if line == "" {
+					continue
+				}
+
+				if len(line) != 32 {
+					exitError("%q is not a MD5 checksum", line)
+				}
+
+				mutationBlackList[line] = struct{}{}
+			}
+		}
 	}
 
 	var mutators []mutator.Mutator

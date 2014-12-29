@@ -81,12 +81,14 @@ go-mutesting --exec "$GOPATH/src/github.com/zimmski/go-mutesting/scripts/simple.
 
 The execution will print the following output.
 
+> **Note**: This output is from an older version of go-mutesting. Up to date versions of go-mutesting will have different mutations.
+
 ```
-PASS "/tmp/go-mutesting-220748129//home/zimmski/go/src/github.com/zimmski/go-mutesting/example/example.go.0"
-PASS "/tmp/go-mutesting-220748129//home/zimmski/go/src/github.com/zimmski/go-mutesting/example/example.go.1"
-PASS "/tmp/go-mutesting-220748129//home/zimmski/go/src/github.com/zimmski/go-mutesting/example/example.go.2"
---- /home/zimmski/go/src/github.com/zimmski/go-mutesting/example/example.go     2014-12-29 19:15:53.833248203 +0100
-+++ /tmp/go-mutesting-220748129//home/zimmski/go/src/github.com/zimmski/go-mutesting/example/example.go.3       2014-12-29 19:15:57.506357675 +0100
+PASS "/tmp/go-mutesting-422402775//home/zimmski/go/src/github.com/zimmski/go-mutesting/example/example.go.0" with checksum b705f4c99e6d572de509609eb0a625be
+PASS "/tmp/go-mutesting-422402775//home/zimmski/go/src/github.com/zimmski/go-mutesting/example/example.go.1" with checksum eb54efffc5edfc7eba2b276371b29836
+PASS "/tmp/go-mutesting-422402775//home/zimmski/go/src/github.com/zimmski/go-mutesting/example/example.go.2" with checksum 011df9567e5fee9bf75cbe5d5dc1c81f
+--- /home/zimmski/go/src/github.com/zimmski/go-mutesting/example/example.go
++++ /tmp/go-mutesting-422402775//home/zimmski/go/src/github.com/zimmski/go-mutesting/example/example.go.3
 @@ -16,7 +16,7 @@
         }
 
@@ -96,13 +98,74 @@ PASS "/tmp/go-mutesting-220748129//home/zimmski/go/src/github.com/zimmski/go-mut
         }
 
         n++
-FAIL "/tmp/go-mutesting-220748129//home/zimmski/go/src/github.com/zimmski/go-mutesting/example/example.go.3"
-The mutation score is 0.750000 (3 passed, 1 failed, 0 skipped, total is 4)
+FAIL "/tmp/go-mutesting-422402775//home/zimmski/go/src/github.com/zimmski/go-mutesting/example/example.go.3" with checksum 82fc14acf7b561598bfce25bf3a162a2
+PASS "/tmp/go-mutesting-422402775//home/zimmski/go/src/github.com/zimmski/go-mutesting/example/example.go.4" with checksum 5720f1bf404abea121feb5a50caf672c
+PASS "/tmp/go-mutesting-422402775//home/zimmski/go/src/github.com/zimmski/go-mutesting/example/example.go.5" with checksum d6c1b5e25241453128f9f3bf1b9e7741
+--- /home/zimmski/go/src/github.com/zimmski/go-mutesting/example/example.go
++++ /tmp/go-mutesting-422402775//home/zimmski/go/src/github.com/zimmski/go-mutesting/example/example.go.6
+@@ -24,7 +24,6 @@
+        n += bar()
+
+        bar()
+-       bar()
+
+        return n
+ }
+FAIL "/tmp/go-mutesting-422402775//home/zimmski/go/src/github.com/zimmski/go-mutesting/example/example.go.6" with checksum 5b1ca0cfedd786d9df136a0e042df23a
+PASS "/tmp/go-mutesting-422402775//home/zimmski/go/src/github.com/zimmski/go-mutesting/example/example.go.8" with checksum 6928f4458787c7042c8b4505888300a6
+The mutation score is 0.750000 (6 passed, 2 failed, 0 skipped, total is 8)
 ```
 
-The output shows that four mutations have been found and tested. Three of them passed which means that the test suite failed for these mutations and the mutations were therefore killed. However, one mutation did not fail the test suite. Its source code diff is shown in the output which can be used to investigate the mutation.
+The output shows that eight mutations have been found and tested. Six of them passed which means that the test suite failed for these mutations and the mutations were therefore killed. However, two mutation did not fail the test suite. Their source code diffs are shown in the output which can be used to investigate the mutations.
 
 The summary also shows the **mutation score** which is a metric on how many mutations are killed by the test suite and therefore states the quality of the test suite. The mutation score is calculated by dividing the amount of all passed mutations with the amount of mutations that passed plus the amount of mutations that failed. A score of 1.0 therefore means that all mutations have been killed.
+
+### <a name="black-list-false-positives"></a>Blacklist false positives
+
+Mutation testing can generate many false positives since mutation algorithms do not fully understand the given source code. `early exits` are one common example. They can be implemented as optimizations and will almost always trigger a false-positive since the unoptimized code path will be used which will lead to the same result. go-mutesting is meant to be used as an addition to automatic test suites. It is therefore necessary to mark such mutations as false-positives. This is done with the `--blacklist` option. The option defines a file which contains in every line a MD5 checksum of a mutation. These checksum can then be used to ignore mutations.
+
+> **Note**: The blacklist feature is currently badly implemented as a change in the original source code will change all checksums.
+
+The example output of the [How do I use go-mutesting?](#how-do-i-use-go-mutesting) section describes a mutation `example.go.6` which has the checksum `5b1ca0cfedd786d9df136a0e042df23a`. If we want to mark this mutation as a false-positive, we simple create a file with the following content.
+
+```
+5b1ca0cfedd786d9df136a0e042df23a
+```
+
+As an example we state that this file has the name `example.blacklist`. The blacklist file can then be used to invoke the same example with go-mutesting.
+
+```bash
+cd $GOPATH/src/github.com/zimmski/go-mutesting/example
+go-mutesting --exec "$GOPATH/src/github.com/zimmski/go-mutesting/scripts/simple.sh" --blacklist example.blacklist github.com/zimmski/go-mutesting/example
+```
+
+The execution will print the following output.
+
+> **Note**: This output is from an older version of go-mutesting. Up to date versions of go-mutesting will have different mutations.
+
+```
+PASS "/tmp/go-mutesting-208240643/example.go.0" with checksum b705f4c99e6d572de509609eb0a625be
+PASS "/tmp/go-mutesting-208240643/example.go.1" with checksum eb54efffc5edfc7eba2b276371b29836
+PASS "/tmp/go-mutesting-208240643/example.go.2" with checksum 011df9567e5fee9bf75cbe5d5dc1c81f
+--- example.go  2014-12-29 23:37:42.813320040 +0100
++++ /tmp/go-mutesting-208240643/example.go.3    2014-12-30 00:49:33.573285038 +0100
+@@ -16,7 +16,7 @@
+        }
+
+        if n < 0 {
+-               n = 0
++
+        }
+
+        n++
+FAIL "/tmp/go-mutesting-208240643/example.go.3" with checksum 82fc14acf7b561598bfce25bf3a162a2
+PASS "/tmp/go-mutesting-208240643/example.go.4" with checksum 5720f1bf404abea121feb5a50caf672c
+PASS "/tmp/go-mutesting-208240643/example.go.5" with checksum d6c1b5e25241453128f9f3bf1b9e7741
+PASS "/tmp/go-mutesting-208240643/example.go.8" with checksum 6928f4458787c7042c8b4505888300a6
+The mutation score is 0.857143 (6 passed, 1 failed, 0 skipped, total is 7)
+```
+
+By comparing this output to the original output we can state that we now have 7 mutations instead of 8.
 
 ## <a name="write-mutation-exec-commands"></a>How do I write my own mutation exec commands?
 
