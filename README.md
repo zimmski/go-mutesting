@@ -1,6 +1,6 @@
 # go-mutesting [![GoDoc](https://godoc.org/github.com/zimmski/go-mutesting?status.png)](https://godoc.org/github.com/zimmski/go-mutesting) [![Build Status](https://travis-ci.org/zimmski/go-mutesting.svg?branch=master)](https://travis-ci.org/zimmski/go-mutesting) [![Coverage Status](https://coveralls.io/repos/zimmski/go-mutesting/badge.png?branch=master)](https://coveralls.io/r/zimmski/go-mutesting?branch=master)
 
-go-mutesting is a framework for performing mutation testing on Go source code.
+go-mutesting is a framework for performing mutation testing on Go source code. Its main purpose is to find source code, which is not covered by any tests.
 
 ## Quick example
 
@@ -64,7 +64,7 @@ The binary's help can be invoked by executing the binary without arguments or wi
 go-mutesting --help
 ```
 
-The targets of the mutation testing can be defined as arguments to the binary. Every target can be either a Go source file, a directory or a package. Directories and packages can also include the `...` pattern which will search recursively for Go source files. Test source files with the ending `_test` are excluded, since this would interfere with the testing most of the time.
+The targets of the mutation testing can be defined as arguments to the binary. Every target can be either a Go source file, a directory or a package. Directories and packages can also include the `...`wildcard pattern which will search recursively for Go source files. Test source files with the ending `_test` are excluded, since this would interfere with testing the mutation most of the time.
 
 The following example will gather all Go files which are defined through the targets and generate mutations with all available mutators of the binary.
 
@@ -100,7 +100,7 @@ FAIL "/tmp/go-mutesting-220748129//home/zimmski/go/src/github.com/zimmski/go-mut
 The mutation score is 0.750000 (3 passed, 1 failed, 0 skipped, total is 4)
 ```
 
-The output shows that four mutations have been found and tested. Three of them passed which means that the test suite failed for these mutations and the mutations were therefore killed. However, one mutation did not fail the test suite. Its source code diff is shown in the output which can be used to investigate if this mutation is a true-positive, which means that there is something wrong with the implementation or the test suite lacks the test for the changed code.
+The output shows that four mutations have been found and tested. Three of them passed which means that the test suite failed for these mutations and the mutations were therefore killed. However, one mutation did not fail the test suite. Its source code diff is shown in the output which can be used to investigate the mutation.
 
 The summary also shows the **mutation score** which is an metric on how many mutations are killed by the test suite and therefore states the quality of the test suite. The mutation score is calculated by dividing the amount of all passed mutations with the amount of mutations that passed plus the amount of mutations that failed. A score of 1.0 therefore means that all mutations have been killed.
 
@@ -125,12 +125,12 @@ The command is given a set of environment variables which define exactly one mut
 
 A command must exit with an appropriate exit code.
 
-| Exit code | Description                                                                                             |
-| :------   | :--------                                                                                               |
-| 0         | The mutation was killed. Which means that the test led to a failed test after the mutation was applied. |
-| 1         | The mutation is alive. Which means that this could be a flaw.                                           |
-| 2         | The mutation was skipped, since there are other problems e.g. compilation errors.                       |
-| >2        | The mutation produced an unknown exit code which might be a flaw in the exec command.                   |
+| Exit code | Description                                                                                                   |
+| :------   | :--------                                                                                                     |
+| 0         | The mutation was killed. Which means that the test led to a failed test after the mutation was applied.       |
+| 1         | The mutation is alive. Which means that this could be a flaw in the test suite or even in the implementation. |
+| 2         | The mutation was skipped, since there are other problems e.g. compilation errors.                             |
+| >2        | The mutation produced an unknown exit code which might be a flaw in the exec command.                         |
 
 Examples for exec commands can be found in the [scripts](/scripts) directory.
 
@@ -147,11 +147,13 @@ Examples for exec commands can be found in the [scripts](/scripts) directory.
 
 | Name                | Description                                    |
 | :------------------ | :--------------------------------------------- |
-| expression/remove   | Searches for `&&` and <code>\|\|</code> expressions and makes each term of the expression unnecessary with using `true` or `false` as replacements. |
+| expression/remove   | Searches for `&&` and <code>\|\|</code> operators and makes each term of the operator irrelevant by using `true` or `false` as replacements. |
 
 ## <a name="write-mutators"></a>How do I write my own mutators?
 
 Each mutator must implement the `Mutator` interface of the [github.com/zimmski/go-mutesting/mutator](https://godoc.org/github.com/zimmski/go-mutesting/mutator#Mutator) package. The methods of the interface are described in detail in the source code documentation.
+
+Additionally each mutator has to be registered with the `Register` function of the [github.com/zimmski/go-mutesting/mutator](https://godoc.org/github.com/zimmski/go-mutesting/mutator#Mutator) package.
 
 Examples for mutators can be found in the [github.com/zimmski/go-mutesting/mutator](https://godoc.org/github.com/zimmski/go-mutesting/mutator) package and its sub-packages.
 
