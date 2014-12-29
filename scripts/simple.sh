@@ -5,10 +5,14 @@ function clean_up {
 	then
 		mv $MUTATE_ORIGINAL.tmp $MUTATE_ORIGINAL
 	fi
-
-	exit
 }
-trap clean_up SIGHUP SIGINT SIGTERM
+
+function sig_handler {
+	clean_up
+
+	exit $GOMUTESTING_RESULT
+}
+trap sig_handler SIGHUP SIGINT SIGTERM
 
 export GOMUTESTING_DIFF=$(diff -u $MUTATE_ORIGINAL $MUTATE_CHANGED)
 
