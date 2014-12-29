@@ -14,7 +14,6 @@ func TestMutateIf(t *testing.T) {
 
 	test.Mutator(
 		t,
-		"../../testdata/test.go",
 		"../../testdata/branch/mutateif.go",
 		m,
 		2,

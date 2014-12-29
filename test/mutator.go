@@ -15,8 +15,8 @@ import (
 
 // Mutator tests a mutator.
 // It mutates the given original file with the given mutator. Every mutation is then validated with the given changed file. The mutation overall count is validated with the given count.
-func Mutator(t *testing.T, originalFilePath string, changedFilePath string, m mutator.Mutator, count uint) {
-	originalFile, err := ioutil.ReadFile(originalFilePath)
+func Mutator(t *testing.T, testFile string, m mutator.Mutator, count uint) {
+	originalFile, err := ioutil.ReadFile(testFile)
 	assert.Nil(t, err)
 
 	f, fset, err := mutesting.ParseSource(originalFile)
@@ -39,7 +39,7 @@ func Mutator(t *testing.T, originalFilePath string, changedFilePath string, m mu
 		err = printer.Fprint(buf, fset, f)
 		assert.Nil(t, err)
 
-		changedFile, err := ioutil.ReadFile(fmt.Sprintf("%s.%d.go", changedFilePath, i))
+		changedFile, err := ioutil.ReadFile(fmt.Sprintf("%s.%d.go", testFile, i))
 		assert.Nil(t, err)
 
 		assert.Equal(t, string(changedFile), buf.String())

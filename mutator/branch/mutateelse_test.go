@@ -14,7 +14,6 @@ func TestMutateElse(t *testing.T) {
 
 	test.Mutator(
 		t,
-		"../../testdata/test.go",
 		"../../testdata/branch/mutateelse.go",
 		m,
 		1,

@@ -15,7 +15,6 @@ func TestMutateElse(t *testing.T) {
 	test.Mutator(
 		t,
 		"../../testdata/expression/remove.go",
-		"../../testdata/expression/remove.go",
 		m,
 		6,
 	)
