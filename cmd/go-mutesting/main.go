@@ -16,9 +16,9 @@ import (
 	"syscall"
 
 	"github.com/jessevdk/go-flags"
+	"github.com/zimmski/go-tool/importing"
 
 	"github.com/zimmski/go-mutesting"
-	"github.com/zimmski/go-mutesting/importing"
 	"github.com/zimmski/go-mutesting/mutator"
 	_ "github.com/zimmski/go-mutesting/mutator/branch"
 	_ "github.com/zimmski/go-mutesting/mutator/expression"
