@@ -46,6 +46,7 @@ var opts struct {
 
 	Files struct {
 		ListFiles bool `long:"list-files" description:"List found files"`
+		PrintAST  bool `long:"print-ast" description:"Print the ASTs of all given files and exit"`
 	} `group:"File options"`
 
 	Mutator struct {
@@ -125,6 +126,21 @@ func main() {
 	if opts.Files.ListFiles {
 		for _, file := range files {
 			fmt.Println(file)
+		}
+
+		os.Exit(returnOk)
+	} else if opts.Files.PrintAST {
+		for _, file := range files {
+			fmt.Println(file)
+
+			src, _, err := mutesting.ParseFile(file)
+			if err != nil {
+				exitError("Could not open file %q: %v", file, err)
+			}
+
+			mutesting.PrintWalk(src)
+
+			fmt.Println()
 		}
 
 		os.Exit(returnOk)
