@@ -1,5 +1,15 @@
 #!/bin/bash
 
+function clean_up {
+	if [ -f $MUTATE_ORIGINAL.tmp ];
+	then
+		mv $MUTATE_ORIGINAL.tmp $MUTATE_ORIGINAL
+	fi
+
+	exit
+}
+trap clean_up SIGHUP SIGINT SIGTERM
+
 export GOMUTESTING_DIFF=$(diff -u $MUTATE_ORIGINAL $MUTATE_CHANGED)
 
 mv $MUTATE_ORIGINAL $MUTATE_ORIGINAL.tmp
@@ -11,7 +21,7 @@ go test -timeout $(printf '%ds' $MUTATE_TIMEOUT) ./... > /dev/null
 
 export GOMUTESTING_RESULT=$?
 
-mv $MUTATE_ORIGINAL.tmp $MUTATE_ORIGINAL
+clean_up
 
 case $GOMUTESTING_RESULT in
 0) # tests passed -> FAIL
