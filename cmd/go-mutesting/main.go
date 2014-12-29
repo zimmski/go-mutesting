@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"go/ast"
+	"go/format"
 	"go/printer"
 	"go/token"
 	"io"
@@ -132,7 +134,7 @@ func main() {
 
 MUTATOR:
 	for _, name := range mutator.List() {
-		if len(opts.Mutator.DisableMutators) != 0 {
+		if len(opts.Mutator.DisableMutators) > 0 {
 			for _, d := range opts.Mutator.DisableMutators {
 				pattern := strings.HasSuffix(d, "*")
 
@@ -206,7 +208,7 @@ MUTATOR:
 				}
 				debug("Save mutation into %q", mutationFile)
 
-				if len(execs) != 0 {
+				if len(execs) > 0 {
 					debug("Execute %q for mutation", opts.Exec.Exec)
 
 					execCommand := exec.Command(execs[0], execs[1:]...)
@@ -277,7 +279,7 @@ MUTATOR:
 		debug("Remove %q", tmpDir)
 	}
 
-	if len(execs) != 0 {
+	if len(execs) > 0 {
 		fmt.Printf("The mutation score is %f (%d passed, %d failed, %d skipped, total is %d)\n", float64(passed)/float64(passed+failed), passed, failed, skipped, passed+failed+skipped)
 	} else {
 		fmt.Println("Cannot do a mutation testing summary since no exec command was given.")
@@ -323,20 +325,17 @@ func copyFile(src string, dst string) (err error) {
 }
 
 func saveAST(file string, fset *token.FileSet, node ast.Node) error {
-	f, err := os.Create(file)
+	var buf bytes.Buffer
+
+	err := printer.Fprint(&buf, fset, node)
 	if err != nil {
 		return err
 	}
 
-	err = printer.Fprint(f, fset, node)
+	src, err := format.Source(buf.Bytes())
 	if err != nil {
 		return err
 	}
 
-	err = f.Close()
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return ioutil.WriteFile(file, src, 0666)
 }

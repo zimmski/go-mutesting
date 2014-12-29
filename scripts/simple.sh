@@ -29,6 +29,7 @@ case $GOMUTESTING_RESULT in
 	exit 2
 	;;
 *) # Unkown exit code -> SKIP
+	echo "Unknown exit code"
 	echo "$GOMUTESTING_DIFF"
 
 	exit $GOMUTESTING_RESULT
