@@ -21,6 +21,7 @@ import (
 	"github.com/zimmski/go-mutesting/importing"
 	"github.com/zimmski/go-mutesting/mutator"
 	_ "github.com/zimmski/go-mutesting/mutator/branch"
+	_ "github.com/zimmski/go-mutesting/mutator/expression"
 )
 
 const (

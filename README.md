@@ -27,8 +27,8 @@ DONE- Wir wollen folgendes unterstützen
 		* Also rein nur Zuweisungen und Aufrüfe
 DONE	+ Blöcke löschen, daher
 DONE		* if, else if und else branches leeren
-	+ Condition Terme löschen vom ersten Condition level wenn mehr als ein Term da ist, für
-		* ifs und elseifs
+DONE	+ Condition Terme löschen vom ersten Condition level wenn mehr als ein Term da ist, für
+DONE		* ifs und elseifs
 DONE - Jede Art von "Mutator" ist ein "Plugin"
 DONE- CMD
 DONE	+ Kann wie Golint auf alles mögliche angewendet werden: einzelne Dateien, Ordner, Packages, mit Patterns
