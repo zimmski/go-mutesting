@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"crypto/md5"
 	"fmt"
 	"go/ast"
 	"go/format"
@@ -65,6 +66,8 @@ var opts struct {
 		Targets []string `description:"Packages, directories and files even with patterns"`
 	} `positional-args:"true" required:"true"`
 }
+
+var mutationBlackList = make(map[string]struct{})
 
 func checkArguments() {
 	p := flags.NewNamedParser("go-mutesting", flags.None)
@@ -220,61 +223,67 @@ MUTATOR:
 				}
 
 				mutationFile := fmt.Sprintf("%s.%d", tmpFile, i)
-				err = saveAST(mutationFile, fset, src)
+				checksum, duplicate, err := saveAST(mutationFile, fset, src)
 				if err != nil {
 					panic(err)
 				}
-				debug("Save mutation into %q", mutationFile)
+				if duplicate {
+					debug("%q is a duplicate, we ignore it", mutationFile)
+				} else {
+					debug("Save mutation into %q with checksum %s", mutationFile, checksum)
 
-				if len(execs) > 0 {
-					debug("Execute %q for mutation", opts.Exec.Exec)
+					if len(execs) > 0 {
+						debug("Execute %q for mutation", opts.Exec.Exec)
 
-					execCommand := exec.Command(execs[0], execs[1:]...)
+						execCommand := exec.Command(execs[0], execs[1:]...)
 
-					execCommand.Stderr = os.Stderr
-					execCommand.Stdout = os.Stdout
+						execCommand.Stderr = os.Stderr
+						execCommand.Stdout = os.Stdout
 
-					execCommand.Env = append(os.Environ(), []string{
-						"MUTATE_CHANGED=" + mutationFile,
-						"MUTATE_ORIGINAL=" + file,
-						fmt.Sprintf("MUTATE_TIMEOUT=%d", opts.Exec.Timeout),
-					}...)
+						execCommand.Env = append(os.Environ(), []string{
+							"MUTATE_CHANGED=" + mutationFile,
+							"MUTATE_ORIGINAL=" + file,
+							fmt.Sprintf("MUTATE_TIMEOUT=%d", opts.Exec.Timeout),
+						}...)
 
-					err = execCommand.Start()
-					if err != nil {
-						panic(err)
-					}
+						err = execCommand.Start()
+						if err != nil {
+							panic(err)
+						}
 
-					// TODO timeout here
+						// TODO timeout here
 
-					err = execCommand.Wait()
+						err = execCommand.Wait()
 
-					var execExitCode int
-					if err == nil {
-						execExitCode = 0
-					} else if e, ok := err.(*exec.ExitError); ok {
-						execExitCode = e.Sys().(syscall.WaitStatus).ExitStatus()
-					} else {
-						panic(err)
-					}
+						var execExitCode int
+						if err == nil {
+							execExitCode = 0
+						} else if e, ok := err.(*exec.ExitError); ok {
+							execExitCode = e.Sys().(syscall.WaitStatus).ExitStatus()
+						} else {
+							panic(err)
+						}
 
-					debug("Exited with %d", execExitCode)
+						debug("Exited with %d", execExitCode)
 
-					switch execExitCode {
-					case 0:
-						fmt.Printf("PASS %q\n", mutationFile)
+						msg := fmt.Sprintf("%q with checksum %s", mutationFile, checksum)
 
-						passed++
-					case 1:
-						fmt.Printf("FAIL %q\n", mutationFile)
+						switch execExitCode {
+						case 0:
+							fmt.Printf("PASS %s\n", msg)
 
-						failed++
-					case 2:
-						fmt.Printf("SKIP %q\n", mutationFile)
+							passed++
+						case 1:
+							fmt.Printf("FAIL %s\n", msg)
 
-						skipped++
-					default:
-						fmt.Printf("UNKOWN exit code for %q\n", mutationFile)
+							failed++
+						case 2:
+							fmt.Printf("SKIP %s\n", msg)
+
+							skipped++
+						default:
+							fmt.Printf("UNKOWN exit code for %s\n", msg)
+						}
 					}
 				}
 
@@ -342,18 +351,33 @@ func copyFile(src string, dst string) (err error) {
 	return nil
 }
 
-func saveAST(file string, fset *token.FileSet, node ast.Node) error {
+func saveAST(file string, fset *token.FileSet, node ast.Node) (string, bool, error) {
 	var buf bytes.Buffer
 
-	err := printer.Fprint(&buf, fset, node)
+	h := md5.New()
+
+	err := printer.Fprint(io.MultiWriter(h, &buf), fset, node)
 	if err != nil {
-		return err
+		return "", false, err
 	}
+
+	checksum := fmt.Sprintf("%x", h.Sum(nil))
+
+	if _, ok := mutationBlackList[checksum]; ok {
+		return checksum, true, nil
+	}
+
+	mutationBlackList[checksum] = struct{}{}
 
 	src, err := format.Source(buf.Bytes())
 	if err != nil {
-		return err
+		return "", false, err
 	}
 
-	return ioutil.WriteFile(file, src, 0666)
+	err = ioutil.WriteFile(file, src, 0666)
+	if err != nil {
+		return "", false, err
+	}
+
+	return checksum, false, nil
 }
