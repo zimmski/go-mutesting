@@ -39,7 +39,7 @@ const (
 	execSkipped = 2
 )
 
-type Options struct {
+type options struct {
 	General struct {
 		Debug                bool `long:"debug" description:"Debug log output"`
 		DoNotRemoveTmpFolder bool `long:"do-not-remove-tmp-folder" description:"Do not remove the tmp folder where all mutations are saved to"`
@@ -68,7 +68,7 @@ type Options struct {
 	} `positional-args:"true" required:"true"`
 }
 
-func checkArguments(args []string, opts *Options) (bool, int) {
+func checkArguments(args []string, opts *options) (bool, int) {
 	p := flags.NewNamedParser("go-mutesting", flags.None)
 
 	p.ShortDescription = "Mutation testing for Go source code"
@@ -103,13 +103,13 @@ func checkArguments(args []string, opts *Options) (bool, int) {
 	return false, 0
 }
 
-func debug(opts *Options, format string, args ...interface{}) {
+func debug(opts *options, format string, args ...interface{}) {
 	if opts.General.Debug {
 		fmt.Printf(format+"\n", args...)
 	}
 }
 
-func verbose(opts *Options, format string, args ...interface{}) {
+func verbose(opts *options, format string, args ...interface{}) {
 	if opts.General.Verbose || opts.General.Debug {
 		fmt.Printf(format+"\n", args...)
 	}
@@ -122,7 +122,7 @@ func exitError(format string, args ...interface{}) int {
 }
 
 func mainCmd(args []string) int {
-	var opts = new(Options)
+	var opts = new(options)
 	var mutationBlackList = make(map[string]struct{})
 
 	if exit, exitCode := checkArguments(args, opts); exit {

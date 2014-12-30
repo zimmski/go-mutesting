@@ -1,4 +1,4 @@
-.PHONY: all clean coverage debug-install dependencies fmt install lint markdown test tools
+.PHONY: all clean coverage debug-install dependencies fmt install lint markdown test testverbose tools
 
 ROOT_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
@@ -30,6 +30,8 @@ lint: install fmt
 markdown:
 	orange
 test:
+	go test -race ./...
+testverbose:
 	go test -race -v ./...
 tools:
 	# generation

@@ -19,7 +19,7 @@ script:
   - $(exit $(golint ./... | grep --invert-match -P "(_string.go:)" | wc -l))
 
   # project
-  - make test
+  - make testverbose
 
   # code coverage
   - ginkgo -r -cover -skipPackage="testdata"
