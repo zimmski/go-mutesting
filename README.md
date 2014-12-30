@@ -11,7 +11,7 @@ cd $GOPATH/src/github.com/zimmski/go-mutesting
 go-mutesting --exec "$GOPATH/src/github.com/zimmski/go-mutesting/scripts/simple.sh" --exec-timeout 1 github.com/zimmski/go-mutesting/...
 ```
 
-The execution of the command outputs for every mutation if it was successfully tested or not. If not, the source code diff is printed out so the mutation can be investigated. The following shows an example for a diff of a mutation for the go-mutesting project itself.
+The execution of this command prints for every mutation if it was successfully tested or not. If not, the source code patch is printed out, so the mutation can be investigated. The following shows an example for a patch of a mutation.
 
 ```diff
 @@ -155,7 +155,7 @@
@@ -66,7 +66,7 @@ go-mutesting --help
 
 The targets of the mutation testing can be defined as arguments to the binary. Every target can be either a Go source file, a directory or a package. Directories and packages can also include the `...`wildcard pattern which will search recursively for Go source files. Test source files with the ending `_test` are excluded, since this would interfere with testing the mutation most of the time.
 
-The following example will gather all Go files which are defined through the targets and generate mutations with all available mutators of the binary.
+The following example will gather all Go files which are defined by the targets and generate mutations with all available mutators of the binary.
 
 ```bash
 go-mutesting parse.go example/ github.com/zimmski/go-mutesting/mutator/...
@@ -116,13 +116,13 @@ PASS "/tmp/go-mutesting-422402775//home/zimmski/go/src/github.com/zimmski/go-mut
 The mutation score is 0.750000 (6 passed, 2 failed, 0 skipped, total is 8)
 ```
 
-The output shows that eight mutations have been found and tested. Six of them passed which means that the test suite failed for these mutations and the mutations were therefore killed. However, two mutation did not fail the test suite. Their source code diffs are shown in the output which can be used to investigate the mutations.
+The output shows that eight mutations have been found and tested. Six of them passed which means that the test suite failed for these mutations and the mutations were therefore killed. However, two mutation did not fail the test suite. Their source code patches are shown in the output which can be used to investigate the mutations.
 
-The summary also shows the **mutation score** which is a metric on how many mutations are killed by the test suite and therefore states the quality of the test suite. The mutation score is calculated by dividing the amount of all passed mutations with the amount of mutations that passed plus the amount of mutations that failed. A score of 1.0 therefore means that all mutations have been killed.
+The summary also shows the **mutation score** which is a metric on how many mutations are killed by the test suite and therefore states the quality of the test suite. The mutation score is calculated by dividing the amount of all passed mutations with the amount of mutations that passed plus the amount of mutations that failed. A score of 1.0 means that all mutations have been killed.
 
 ### <a name="black-list-false-positives"></a>Blacklist false positives
 
-Mutation testing can generate many false positives since mutation algorithms do not fully understand the given source code. `early exits` are one common example. They can be implemented as optimizations and will almost always trigger a false-positive since the unoptimized code path will be used which will lead to the same result. go-mutesting is meant to be used as an addition to automatic test suites. It is therefore necessary to mark such mutations as false-positives. This is done with the `--blacklist` option. The option defines a file which contains in every line a MD5 checksum of a mutation. These checksum can then be used to ignore mutations.
+Mutation testing can generate many false positives since mutation algorithms do not fully understand the given source code. `early exits` are one common example. They can be implemented as optimizations and will almost always trigger a false-positive since the unoptimized code path will be used which will lead to the same result. go-mutesting is meant to be used as an addition to automatic test suites. It is therefore necessary to mark such mutations as false-positives. This is done with the `--blacklist` option. The option defines a file which contains in every line a MD5 checksum of a mutation. These checksums can then be used to ignore mutations.
 
 > **Note**: The blacklist feature is currently badly implemented as a change in the original source code will change all checksums.
 
@@ -132,7 +132,7 @@ The example output of the [How do I use go-mutesting?](#how-do-i-use-go-mutestin
 5b1ca0cfedd786d9df136a0e042df23a
 ```
 
-As an example we state that this file has the name `example.blacklist`. The blacklist file can then be used to invoke the same example with go-mutesting.
+The blacklist file, which is named `example.blacklist` in this example, can then be used to invoke go-mutesting.
 
 ```bash
 cd $GOPATH/src/github.com/zimmski/go-mutesting/example
@@ -224,13 +224,13 @@ Examples for exec commands can be found in the [scripts](/scripts) directory.
 
 Each mutator must implement the `Mutator` interface of the [github.com/zimmski/go-mutesting/mutator](https://godoc.org/github.com/zimmski/go-mutesting/mutator#Mutator) package. The methods of the interface are described in detail in the source code documentation.
 
-Additionally each mutator has to be registered with the `Register` function of the [github.com/zimmski/go-mutesting/mutator](https://godoc.org/github.com/zimmski/go-mutesting/mutator#Mutator) package.
+Additionally each mutator has to be registered with the `Register` function of the [github.com/zimmski/go-mutesting/mutator](https://godoc.org/github.com/zimmski/go-mutesting/mutator#Mutator) package to make it usable by the binary.
 
 Examples for mutators can be found in the [github.com/zimmski/go-mutesting/mutator](https://godoc.org/github.com/zimmski/go-mutesting/mutator) package and its sub-packages.
 
 ## <a name="other-projects"></a>Other mutation testing projects and their flaws
 
-go-mutesting is not the first project to implement mutation testing for Go source code. A quick search search uncovers the following projects.
+go-mutesting is not the first project to implement mutation testing for Go source code. A quick search uncovers the following projects.
 
 - https://github.com/darkhelmet/manbearpig
 - https://github.com/kisielk/mutator
