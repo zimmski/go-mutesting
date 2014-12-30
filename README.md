@@ -64,6 +64,8 @@ The binary's help can be invoked by executing the binary without arguments or wi
 go-mutesting --help
 ```
 
+> **Note**: This README describes only a few of the available options and arguments. It is therefore advisable to examine the help.
+
 The targets of the mutation testing can be defined as arguments to the binary. Every target can be either a Go source file, a directory or a package. Directories and packages can also include the `...`wildcard pattern which will search recursively for Go source files. Test source files with the ending `_test` are excluded, since this would interfere with testing the mutation most of the time.
 
 The following example will gather all Go files which are defined by the targets and generate mutations with all available mutators of the binary.
