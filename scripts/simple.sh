@@ -21,7 +21,7 @@ cp $MUTATE_CHANGED $MUTATE_ORIGINAL
 
 export MUTATE_TIMEOUT=${MUTATE_TIMEOUT:-10}
 
-go test -timeout $(printf '%ds' $MUTATE_TIMEOUT) ./... > /dev/null
+go test -timeout $(printf '%ds' $MUTATE_TIMEOUT) ./... > /dev/null 2>&1
 
 export GOMUTESTING_RESULT=$?
 
@@ -38,7 +38,6 @@ case $GOMUTESTING_RESULT in
 	;;
 2) # did not compile -> SKIP
 	echo "Mutation did not compile"
-	echo "$GOMUTESTING_DIFF"
 
 	exit 2
 	;;
