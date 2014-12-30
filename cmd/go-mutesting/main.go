@@ -39,7 +39,7 @@ const (
 	execSkipped = 2
 )
 
-var opts struct {
+type Options struct {
 	General struct {
 		Debug                bool `long:"debug" description:"Debug log output"`
 		DoNotRemoveTmpFolder bool `long:"do-not-remove-tmp-folder" description:"Do not remove the tmp folder where all mutations are saved to"`
@@ -68,65 +68,70 @@ var opts struct {
 	} `positional-args:"true" required:"true"`
 }
 
-var mutationBlackList = make(map[string]struct{})
-
-func checkArguments() {
+func checkArguments(args []string, opts *Options) (bool, int) {
 	p := flags.NewNamedParser("go-mutesting", flags.None)
 
 	p.ShortDescription = "Mutation testing for Go source code"
 
-	if _, err := p.AddGroup("go-mutesting", "go-mutesting arguments", &opts); err != nil {
-		exitError(err.Error())
+	if _, err := p.AddGroup("go-mutesting", "go-mutesting arguments", opts); err != nil {
+		return true, exitError(err.Error())
 	}
 
 	completion := len(os.Getenv("GO_FLAGS_COMPLETION")) > 0
 
-	_, err := p.Parse()
-	if (opts.General.Help || len(os.Args) == 1) && !completion {
+	_, err := p.ParseArgs(args)
+	if (opts.General.Help || len(args) == 0) && !completion {
 		p.WriteHelp(os.Stdout)
 
-		os.Exit(returnHelp)
+		return true, returnHelp
 	} else if opts.Mutator.ListMutators {
 		for _, name := range mutator.List() {
 			fmt.Println(name)
 		}
 
-		os.Exit(returnOk)
+		return true, returnOk
 	}
 
 	if err != nil {
-		exitError(err.Error())
+		return true, exitError(err.Error())
 	}
 
 	if completion {
-		os.Exit(returnBashCompletion)
+		return true, returnBashCompletion
 	}
+
+	return false, 0
 }
 
-func debug(format string, args ...interface{}) {
+func debug(opts *Options, format string, args ...interface{}) {
 	if opts.General.Debug {
 		fmt.Printf(format+"\n", args...)
 	}
 }
 
-func verbose(format string, args ...interface{}) {
+func verbose(opts *Options, format string, args ...interface{}) {
 	if opts.General.Verbose || opts.General.Debug {
 		fmt.Printf(format+"\n", args...)
 	}
 }
 
-func exitError(format string, args ...interface{}) {
+func exitError(format string, args ...interface{}) int {
 	fmt.Fprintf(os.Stderr, format+"\n", args...)
 
-	os.Exit(returnError)
+	return returnError
 }
 
-func main() {
-	checkArguments()
+func mainCmd(args []string) int {
+	var opts = new(Options)
+	var mutationBlackList = make(map[string]struct{})
+
+	if exit, exitCode := checkArguments(args, opts); exit {
+		return exitCode
+	}
 
 	files := importing.FilesOfArgs(opts.Remaining.Targets)
 	if len(files) == 0 {
-		exitError("Could not find any suitable Go source files")
+		return exitError("Could not find any suitable Go source files")
 	}
 
 	if opts.Files.ListFiles {
@@ -134,14 +139,14 @@ func main() {
 			fmt.Println(file)
 		}
 
-		os.Exit(returnOk)
+		return returnOk
 	} else if opts.Files.PrintAST {
 		for _, file := range files {
 			fmt.Println(file)
 
 			src, _, err := mutesting.ParseFile(file)
 			if err != nil {
-				exitError("Could not open file %q: %v", file, err)
+				return exitError("Could not open file %q: %v", file, err)
 			}
 
 			mutesting.PrintWalk(src)
@@ -149,14 +154,14 @@ func main() {
 			fmt.Println()
 		}
 
-		os.Exit(returnOk)
+		return returnOk
 	}
 
 	if len(opts.Files.Blacklist) > 0 {
 		for _, f := range opts.Files.Blacklist {
 			c, err := ioutil.ReadFile(f)
 			if err != nil {
-				exitError("Cannot read blacklist file %q: %v", f, err)
+				return exitError("Cannot read blacklist file %q: %v", f, err)
 			}
 
 			for _, line := range strings.Split(string(c), "\n") {
@@ -165,7 +170,7 @@ func main() {
 				}
 
 				if len(line) != 32 {
-					exitError("%q is not a MD5 checksum", line)
+					return exitError("%q is not a MD5 checksum", line)
 				}
 
 				mutationBlackList[line] = struct{}{}
@@ -187,7 +192,7 @@ MUTATOR:
 			}
 		}
 
-		debug("Enable mutator %q", name)
+		debug(opts, "Enable mutator %q", name)
 
 		m, _ := mutator.New(name)
 		mutators = append(mutators, m)
@@ -197,7 +202,7 @@ MUTATOR:
 	if err != nil {
 		panic(err)
 	}
-	debug("Save mutations into %q", tmpDir)
+	debug(opts, "Save mutations into %q", tmpDir)
 
 	var execs []string
 	if opts.Exec.Exec != "" {
@@ -209,11 +214,11 @@ MUTATOR:
 	skipped := 0
 
 	for _, file := range files {
-		debug("Mutate %q", file)
+		debug(opts, "Mutate %q", file)
 
 		src, fset, err := mutesting.ParseFile(file)
 		if err != nil {
-			exitError("Could not open file %q: %v", file, err)
+			return exitError("Could not open file %q: %v", file, err)
 		}
 
 		err = os.MkdirAll(tmpDir+"/"+filepath.Dir(file), 0755)
@@ -228,12 +233,12 @@ MUTATOR:
 		if err != nil {
 			panic(err)
 		}
-		debug("Save original into %q", originalFile)
+		debug(opts, "Save original into %q", originalFile)
 
 		i := 0
 
 		for _, m := range mutators {
-			debug("Mutator %s", m)
+			debug(opts, "Mutator %s", m)
 
 			changed := mutesting.MutateWalk(src, m)
 
@@ -245,17 +250,17 @@ MUTATOR:
 				}
 
 				mutationFile := fmt.Sprintf("%s.%d", tmpFile, i)
-				checksum, duplicate, err := saveAST(mutationFile, fset, src)
+				checksum, duplicate, err := saveAST(mutationBlackList, mutationFile, fset, src)
 				if err != nil {
 					panic(err)
 				}
 				if duplicate {
-					debug("%q is a duplicate, we ignore it", mutationFile)
+					debug(opts, "%q is a duplicate, we ignore it", mutationFile)
 				} else {
-					debug("Save mutation into %q with checksum %s", mutationFile, checksum)
+					debug(opts, "Save mutation into %q with checksum %s", mutationFile, checksum)
 
 					if len(execs) > 0 {
-						debug("Execute %q for mutation", opts.Exec.Exec)
+						debug(opts, "Execute %q for mutation", opts.Exec.Exec)
 
 						execCommand := exec.Command(execs[0], execs[1:]...)
 
@@ -286,7 +291,7 @@ MUTATOR:
 							panic(err)
 						}
 
-						debug("Exited with %d", execExitCode)
+						debug(opts, "Exited with %d", execExitCode)
 
 						msg := fmt.Sprintf("%q with checksum %s", mutationFile, checksum)
 
@@ -325,7 +330,7 @@ MUTATOR:
 		if err != nil {
 			panic(err)
 		}
-		debug("Remove %q", tmpDir)
+		debug(opts, "Remove %q", tmpDir)
 	}
 
 	if len(execs) > 0 {
@@ -334,7 +339,11 @@ MUTATOR:
 		fmt.Println("Cannot do a mutation testing summary since no exec command was given.")
 	}
 
-	os.Exit(returnOk)
+	return returnOk
+}
+
+func main() {
+	os.Exit(mainCmd(os.Args[1:]))
 }
 
 func copyFile(src string, dst string) (err error) {
@@ -373,7 +382,7 @@ func copyFile(src string, dst string) (err error) {
 	return nil
 }
 
-func saveAST(file string, fset *token.FileSet, node ast.Node) (string, bool, error) {
+func saveAST(mutationBlackList map[string]struct{}, file string, fset *token.FileSet, node ast.Node) (string, bool, error) {
 	var buf bytes.Buffer
 
 	h := md5.New()
