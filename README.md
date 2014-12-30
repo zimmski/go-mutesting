@@ -182,9 +182,11 @@ The command is given a set of environment variables which define exactly one mut
 
 | Name            | Description                                                    |
 | :-------------- | :------------------------------------------------------------- |
-| MUTATE_ORIGINAL | Defines the filename to the original file which was mutated.   |
 | MUTATE_CHANGED  | Defines the filename to the mutation of the original file.     |
+| MUTATE_DEBUG    | Defines if debugging output should be printed.                 |
+| MUTATE_ORIGINAL | Defines the filename to the original file which was mutated.   |
 | MUTATE_TIMEOUT  | Defines a timeout which should be honored by the exec command. |
+| MUTATE_VERBOSE  | Defines if verbose output should be printed.                   |
 
 A command must exit with an appropriate exit code.
 

@@ -100,6 +100,10 @@ func checkArguments(args []string, opts *options) (bool, int) {
 		return true, returnBashCompletion
 	}
 
+	if opts.General.Debug {
+		opts.General.Verbose = true
+	}
+
 	return false, 0
 }
 
@@ -269,8 +273,10 @@ MUTATOR:
 
 						execCommand.Env = append(os.Environ(), []string{
 							"MUTATE_CHANGED=" + mutationFile,
+							fmt.Sprintf("MUTATE_DEBUG=%t", opts.General.Debug),
 							"MUTATE_ORIGINAL=" + file,
 							fmt.Sprintf("MUTATE_TIMEOUT=%d", opts.Exec.Timeout),
+							fmt.Sprintf("MUTATE_VERBOSE=%t", opts.General.Verbose),
 						}...)
 
 						err = execCommand.Start()
