@@ -35,6 +35,11 @@ func foo() int {
 		n = 0
 	}
 
+	skip := true
+	if true {
+		_ = skip
+	}
+
 	return n
 }
 
