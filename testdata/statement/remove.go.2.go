@@ -27,6 +27,15 @@ func foo() int {
 
 	bar()
 
+	switch {
+	case n < 20:
+		n++
+	case n > 20:
+		n--
+	default:
+		n = 0
+	}
+
 	return n
 }
 

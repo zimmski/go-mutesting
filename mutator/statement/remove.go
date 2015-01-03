@@ -34,26 +34,31 @@ func (m *MutatorRemoveStatement) checkStatement(node ast.Stmt) bool {
 	return false
 }
 
-func (m *MutatorRemoveStatement) check(node ast.Node) (*ast.BlockStmt, uint) {
-	n, ok := node.(*ast.BlockStmt)
-	if !ok {
-		return nil, 0
+func (m *MutatorRemoveStatement) check(node ast.Node) uint {
+	var count uint
+	var l []ast.Stmt
+
+	switch n := node.(type) {
+	case *ast.BlockStmt:
+		l = n.List
+	case *ast.CaseClause:
+		l = n.Body
+	default:
+		return 0
 	}
 
-	count := uint(0)
-
-	for _, ni := range n.List {
+	for _, ni := range l {
 		if m.checkStatement(ni) {
 			count++
 		}
 	}
 
-	return n, count
+	return count
 }
 
 // Check validates how often a node can be mutated by a mutator
 func (m *MutatorRemoveStatement) Check(node ast.Node) uint {
-	_, count := m.check(node)
+	count := m.check(node)
 
 	return count
 }
@@ -61,24 +66,33 @@ func (m *MutatorRemoveStatement) Check(node ast.Node) uint {
 // Mutate mutates a given node if it can be mutated by the mutator.
 // It first checks if the given node can be mutated by the mutator. If the node cannot be mutated, false is send into the given control channel and the method returns. If the node can be mutated, the current state of the node is saved. Afterwards the node is mutated, true is send into the given control channel and the method waits on the channel to continue the process. After receiving a value from the channel the original state of the node is restored, true is send into the given control channel and the method waits on the channel to continue the process. After receiving a value from the channel the method returns which finishes the mutation process.
 func (m *MutatorRemoveStatement) Mutate(node ast.Node, changed chan bool) {
-	n, count := m.check(node)
+	count := m.check(node)
 	if count == 0 {
 		changed <- false
 
 		return
 	}
 
-	for i, ni := range n.List {
+	var l []ast.Stmt
+
+	switch n := node.(type) {
+	case *ast.BlockStmt:
+		l = n.List
+	case *ast.CaseClause:
+		l = n.Body
+	}
+
+	for i, ni := range l {
 		if m.checkStatement(ni) {
-			old := n.List[i]
-			n.List[i] = &ast.EmptyStmt{
+			old := l[i]
+			l[i] = &ast.EmptyStmt{
 				Semicolon: old.Pos(),
 			}
 
 			changed <- true
 			<-changed
 
-			n.List[i] = old
+			l[i] = old
 
 			changed <- true
 			<-changed

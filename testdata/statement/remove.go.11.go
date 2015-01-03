@@ -14,6 +14,7 @@ func foo() int {
 			n += 3
 		}
 
+		n++
 	}
 
 	if n < 0 {
@@ -33,7 +34,7 @@ func foo() int {
 	case n > 20:
 		n--
 	default:
-		n = 0
+
 	}
 
 	return n
