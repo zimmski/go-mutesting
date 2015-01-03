@@ -33,7 +33,7 @@ func Mutator(t *testing.T, m mutator.Mutator, testFile string, count uint) {
 
 	// count the actual mutations
 	n := mutesting.CountWalk(f, m)
-	assert.Equal(t, n, count)
+	assert.Equal(t, count, n)
 
 	// mutate a non relevant node
 	changed := make(chan bool)
