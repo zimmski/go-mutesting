@@ -27,6 +27,10 @@ func (m *MutatorRemoveTerm) check(node ast.Node) (*ast.BinaryExpr, bool) {
 		return nil, false
 	}
 
+	if n.Op != token.LAND && n.Op != token.LOR {
+		return nil, false
+	}
+
 	_, xBinary := n.X.(*ast.BinaryExpr)
 	_, xParen := n.X.(*ast.ParenExpr)
 	_, yBinary := n.Y.(*ast.BinaryExpr)
