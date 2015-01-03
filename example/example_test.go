@@ -7,5 +7,5 @@ import (
 )
 
 func TestFoo(t *testing.T) {
-	Equal(t, foo(), 15)
+	Equal(t, foo(), 16)
 }

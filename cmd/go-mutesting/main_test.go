@@ -44,5 +44,5 @@ func TestMain(t *testing.T) {
 	out := <-bufChannel
 
 	assert.Equal(t, returnOk, exitCode)
-	assert.Contains(t, out, "The mutation score is 0.750000 (6 passed, 2 failed, 0 skipped, total is 8)")
+	assert.Contains(t, out, "The mutation score is 0.636364 (7 passed, 4 failed, 0 skipped, total is 11)")
 }
