@@ -31,14 +31,6 @@ func (m *MutatorRemoveTerm) check(node ast.Node) (*ast.BinaryExpr, bool) {
 		return nil, false
 	}
 
-	_, xBinary := n.X.(*ast.BinaryExpr)
-	_, xParen := n.X.(*ast.ParenExpr)
-	_, yBinary := n.Y.(*ast.BinaryExpr)
-	_, yParen := n.Y.(*ast.ParenExpr)
-	if (!xBinary && !xParen) || (!yBinary && !yParen) {
-		return nil, false
-	}
-
 	return n, true
 }
 
