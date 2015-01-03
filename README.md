@@ -14,18 +14,31 @@ go-mutesting --exec "$GOPATH/src/github.com/zimmski/go-mutesting/scripts/simple.
 The execution of this command prints for every mutation if it was successfully tested or not. If not, the source code patch is printed out, so the mutation can be investigated. The following shows an example for a patch of a mutation.
 
 ```diff
-@@ -155,7 +155,7 @@
-	for _, d := range opts.Mutator.DisableMutators {
-		pattern := strings.HasSuffix(d, "*")
+for _, d := range opts.Mutator.DisableMutators {
+	pattern := strings.HasSuffix(d, "*")
 
--		if (pattern && strings.HasPrefix(name, d[:len(d)-2])) || (!pattern && name == d) {
-+		if (pattern && strings.HasPrefix(name, d[:len(d)-2])) || false {
-			continue MUTATOR
-		}
+-	if (pattern && strings.HasPrefix(name, d[:len(d)-2])) || (!pattern && name == d) {
++	if (pattern && strings.HasPrefix(name, d[:len(d)-2])) || false {
+		continue MUTATOR
 	}
+}
 ```
 
 The example shows that the right term `(!pattern && name == d)` of the `||` operator is made irrelevant by substituting it with `false`. Since this change of the source code is not detected by the test suite, meaning the test suite did not fail, we can mark it as untested code.
+
+The next mutation shows code from the `removeNode` method of a [linked list](https://github.com/zimmski/container/blob/master/list/linkedlist/linkedlist.go) implementation.
+
+```diff
+	}
+
+	l.first = nil
+-	l.last = nil
++
+	l.len = 0
+}
+```
+
+We know that the code originates from a remove method which means that the mutation introduces a leak by ignoring the removal of a reference. This can be [tested](https://github.com/zimmski/container/commit/142c3e16a249095b0d63f2b41055d17cf059f045) with [go-leaks](https://github.com/zimmski/go-leak).
 
 ## <a name="table-of-content"></a>Table of content
 
@@ -85,7 +98,7 @@ The execution will print the following output.
 
 > **Note**: This output is from an older version of go-mutesting. Up to date versions of go-mutesting will have different mutations.
 
-```
+```diff
 PASS "/tmp/go-mutesting-422402775//home/zimmski/go/src/github.com/zimmski/go-mutesting/example/example.go.0" with checksum b705f4c99e6d572de509609eb0a625be
 PASS "/tmp/go-mutesting-422402775//home/zimmski/go/src/github.com/zimmski/go-mutesting/example/example.go.1" with checksum eb54efffc5edfc7eba2b276371b29836
 PASS "/tmp/go-mutesting-422402775//home/zimmski/go/src/github.com/zimmski/go-mutesting/example/example.go.2" with checksum 011df9567e5fee9bf75cbe5d5dc1c81f
@@ -145,7 +158,7 @@ The execution will print the following output.
 
 > **Note**: This output is from an older version of go-mutesting. Up to date versions of go-mutesting will have different mutations.
 
-```
+```diff
 PASS "/tmp/go-mutesting-208240643/example.go.0" with checksum b705f4c99e6d572de509609eb0a625be
 PASS "/tmp/go-mutesting-208240643/example.go.1" with checksum eb54efffc5edfc7eba2b276371b29836
 PASS "/tmp/go-mutesting-208240643/example.go.2" with checksum 011df9567e5fee9bf75cbe5d5dc1c81f
