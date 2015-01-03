@@ -18,6 +18,7 @@ import (
 
 	"github.com/jessevdk/go-flags"
 	"github.com/zimmski/go-tool/importing"
+	"github.com/zimmski/osutil"
 
 	"github.com/zimmski/go-mutesting"
 	"github.com/zimmski/go-mutesting/mutator"
@@ -233,7 +234,7 @@ MUTATOR:
 		tmpFile := tmpDir + "/" + file
 
 		originalFile := fmt.Sprintf("%s.original", tmpFile)
-		err = copyFile(file, originalFile)
+		err = osutil.CopyFile(file, originalFile)
 		if err != nil {
 			panic(err)
 		}
@@ -350,42 +351,6 @@ MUTATOR:
 
 func main() {
 	os.Exit(mainCmd(os.Args[1:]))
-}
-
-func copyFile(src string, dst string) (err error) {
-	s, err := os.Open(src)
-	if err != nil {
-		return err
-	}
-	defer func() {
-		e := s.Close()
-		if err == nil {
-			err = e
-		}
-	}()
-
-	d, err := os.Create(dst)
-	if err != nil {
-		return err
-	}
-	defer func() {
-		e := d.Close()
-		if err == nil {
-			err = e
-		}
-	}()
-
-	_, err = io.Copy(d, s)
-	if err == nil {
-		i, err := os.Stat(src)
-		if err != nil {
-			return err
-		}
-
-		return os.Chmod(dst, i.Mode())
-	}
-
-	return nil
 }
 
 func saveAST(mutationBlackList map[string]struct{}, file string, fset *token.FileSet, node ast.Node) (string, bool, error) {
