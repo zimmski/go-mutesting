@@ -218,10 +218,11 @@ Examples for exec commands can be found in the [scripts](/scripts) directory.
 
 ### Branch mutators
 
-| Name        | Description                                    |
-| :---------- | :--------------------------------------------- |
-| branch/if   | Empties branches of if and else if statements. |
-| branch/else | Empties branches of else statements.           |
+| Name          | Description                                    |
+| :------------ | :--------------------------------------------- |
+| branch/case   | Empties case bodies.                           |
+| branch/if     | Empties branches of if and else if statements. |
+| branch/else   | Empties branches of else statements.           |
 
 ### Expression mutators
 
@@ -233,7 +234,7 @@ Examples for exec commands can be found in the [scripts](/scripts) directory.
 
 | Name                | Description                                    |
 | :------------------ | :--------------------------------------------- |
-| statement/remove    | Removes assignment, increment, decrement and expression statements in block statements. |
+| statement/remove    | Removes assignment, increment, decrement and expression statements. |
 
 ## <a name="write-mutators"></a>How do I write my own mutators?
 
