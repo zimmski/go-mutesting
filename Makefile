@@ -27,7 +27,7 @@ install: generate
 lint: install fmt
 	errcheck github.com/zimmski/go-mutesting/... || true
 	golint ./... | grep --invert-match -P "(_string.go:)" || true
-	go tool vet -all=true -v=true $(ROOT_DIR)/ 2>&1 | grep --invert-match -P "(Checking file|\%p of wrong type|can't check non-constant format)" || true
+	go tool vet -all=true -v=true $(ROOT_DIR)/ 2>&1 | grep --invert-match -P "(Checking file|\%p of wrong type|can't check non-constant format|not compatible with reflect.StructTag.Get)" || true
 markdown:
 	orange
 test:
