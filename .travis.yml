@@ -1,8 +1,5 @@
 language: go
 
-go:
-  - tip
-
 install:
   # tools
   - make tools
