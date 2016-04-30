@@ -85,9 +85,7 @@ func (m *MutatorRemoveStatement) Mutate(node ast.Node, changed chan bool) {
 	for i, ni := range l {
 		if m.checkStatement(ni) {
 			old := l[i]
-			l[i] = &ast.EmptyStmt{
-				Semicolon: old.Pos(),
-			}
+			l[i] = createNoop(old)
 
 			changed <- true
 			<-changed
@@ -97,6 +95,48 @@ func (m *MutatorRemoveStatement) Mutate(node ast.Node, changed chan bool) {
 			changed <- true
 			<-changed
 		}
+	}
+}
+
+func createNoop(old ast.Stmt) ast.Stmt {
+	v := &idCollector{}
+	ast.Walk(v, old)
+	return v.generateStatement(old)
+}
+
+type idCollector struct {
+	Ids []ast.Expr
+}
+
+func (i *idCollector) Visit(node ast.Node) ast.Visitor {
+	switch v := node.(type) {
+	case *ast.Ident:
+		i.Ids = append(i.Ids, v)
+		return nil
+	case *ast.SelectorExpr:
+		i.Ids = append(i.Ids, v)
+		return nil
+	}
+	return i
+}
+
+func (i *idCollector) generateStatement(old ast.Stmt) ast.Stmt {
+	if len(i.Ids) == 0 {
+		return &ast.EmptyStmt{
+			Semicolon: old.Pos(),
+		}
+	}
+
+	lhs := make([]ast.Expr, len(i.Ids))
+	for i := range i.Ids {
+		lhs[i] = ast.NewIdent("_")
+	}
+
+	return &ast.AssignStmt{
+		Lhs:    lhs,
+		Rhs:    i.Ids,
+		Tok:    token.ASSIGN,
+		TokPos: old.Pos(),
 	}
 }
 

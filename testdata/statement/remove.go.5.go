@@ -2,19 +2,20 @@
 
 package example
 
+import "fmt"
+
 func foo() int {
 	n := 1
 
 	for i := 0; i < 3; i++ {
 		if i == 0 {
-
+			n++
 		} else if i == 1 {
 			n += 2
 		} else {
 			n += 3
 		}
-
-		n++
+		_ = n
 	}
 
 	if n < 0 {
@@ -35,7 +36,12 @@ func foo() int {
 		n--
 	default:
 		n = 0
+		fmt.Println(n)
+		func() {}()
 	}
+
+	var x = 0
+	x++
 
 	return n
 }
