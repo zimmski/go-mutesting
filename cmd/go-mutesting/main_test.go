@@ -20,26 +20,26 @@ func TestMain(t *testing.T) {
 
 	os.Stderr = w
 	os.Stdout = w
-	os.Chdir("../../example")
+	assert.Nil(t, os.Chdir("../../example"))
 
 	bufChannel := make(chan string)
 
 	go func() {
 		buf := new(bytes.Buffer)
 		_, err = io.Copy(buf, r)
-		r.Close()
 		assert.Nil(t, err)
+		assert.Nil(t, r.Close())
 
 		bufChannel <- buf.String()
 	}()
 
 	exitCode := mainCmd([]string{"--exec", "../scripts/simple.sh", "--exec-timeout", "1", "./..."})
 
-	w.Close()
+	assert.Nil(t, w.Close())
 
 	os.Stderr = saveStderr
 	os.Stdout = saveStdout
-	os.Chdir(saveCwd)
+	assert.Nil(t, os.Chdir(saveCwd))
 
 	out := <-bufChannel
 
