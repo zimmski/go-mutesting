@@ -2,6 +2,8 @@
 
 package example
 
+import "fmt"
+
 func foo() int {
 	n := 1
 
@@ -32,10 +34,15 @@ func foo() int {
 	case n < 20:
 		n++
 	case n > 20:
-		n--
+		_ = n
 	default:
-
+		n = 0
+		fmt.Println(n)
+		func() {}()
 	}
+
+	var x = 0
+	x++
 
 	return n
 }

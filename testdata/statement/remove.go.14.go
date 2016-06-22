@@ -32,13 +32,13 @@ func foo() int {
 
 	switch {
 	case n < 20:
-		_ = n
+		n++
 	case n > 20:
 		n--
 	default:
 		n = 0
 		fmt.Println(n)
-		func() {}()
+
 	}
 
 	var x = 0

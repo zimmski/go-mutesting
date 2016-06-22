@@ -11,6 +11,6 @@ func TestMutatorRemoveStatement(t *testing.T) {
 		t,
 		NewMutatorRemoveStatement(),
 		"../../testdata/statement/remove.go",
-		12,
+		15,
 	)
 }
