@@ -1,52 +1,48 @@
-.PHONY: all clean coverage debug-install dependencies fmt install lint markdown test testverbose tools
+.PHONY: all clean clean-coverage generate install install-dependencies install-markdown install-tools lint markdown test test-verbose test-with-coverage
 
-ROOT_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
+export ARGS := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
+export PKG := github.com/zimmski/go-mutesting
+export ROOT_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
-all: tools dependencies install test
+$(eval $(ARGS):;@:) # turn arguments into do-nothing targets
+export ARGS
+
+all: install-tools install-dependencies install lint test
 
 clean:
-	go clean -i ./...
-	go clean -i -race ./...
-coverage:
-	go test -coverprofile=coverage.out
-	go tool cover -html=coverage.out
-crosscompile:
-	gox -os="linux" ./...
-debug-install: generate
-	go install -race -v ./...
-dependencies:
-	go get -t -v ./...
-	go build -v ./...
-fmt:
-	gofmt -l -w $(ROOT_DIR)/
+	go clean -i $(PKG)/...
+	go clean -i -race $(PKG)/...
+clean-coverage:
+	find $(ROOT_DIR) | grep .coverprofile | xargs rm
 generate: clean
-	go install -v ./...
-	go generate ./...
+	go generate $(PKG)/...
 install: generate
-	go install -v ./...
-lint: install fmt
-	errcheck github.com/zimmski/go-mutesting/... || true
-	golint ./... | grep --invert-match -P "(_string.go:)" || true
-	go tool vet -all=true -v=true $(ROOT_DIR)/ 2>&1 | grep --invert-match -P "(Checking file|\%p of wrong type|can't check non-constant format|not compatible with reflect.StructTag.Get)" || true
+	go install -v $(PKG)/...
+install-dependencies:
+	go get -t -v $(PKG)/...
+	go build -v $(PKG)/...
+install-markdown:
+	go get -u -v github.com/noraesae/orange-cat/...
+install-tools:
+	# generation
+	go get -u -v golang.org/x/tools/cmd/stringer
+
+	# linting
+	go get -u -v github.com/golang/lint/...
+	go get -u -v github.com/kisielk/errcheck/...
+
+	# code coverage
+	go get -u -v golang.org/x/tools/cmd/cover
+	go get -u -v github.com/onsi/ginkgo/ginkgo/...
+	go get -u -v github.com/modocache/gover/...
+	go get -u -v github.com/mattn/goveralls/...
+lint:
+	$(ROOT_DIR)/scripts/lint.sh
 markdown:
 	orange
 test:
-	go test -race ./...
-testverbose:
-	go test -race -v ./...
-tools:
-	# generation
-	go get -u golang.org/x/tools/cmd/godoc
-	go get -u golang.org/x/tools/cmd/stringer
-
-	# linting
-	go get -u golang.org/x/tools/cmd/vet
-	go get -u github.com/golang/lint
-	go install github.com/golang/lint/golint
-	go get -u github.com/kisielk/errcheck
-
-	# code coverage
-	go get -u golang.org/x/tools/cmd/cover
-	go get github.com/onsi/ginkgo/ginkgo
-	go get github.com/modocache/gover
-	go get github.com/mattn/goveralls
+	go test -race -test.timeout 60s $(PKG)/...
+test-verbose:
+	go test -race -test.timeout 60s -v $(PKG)/...
+test-with-coverage:
+	ginkgo -r -cover -race -skipPackage="testdata"
