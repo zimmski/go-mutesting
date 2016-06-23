@@ -5,6 +5,7 @@ import (
 	"crypto/md5"
 	"fmt"
 	"go/ast"
+	"go/build"
 	"go/format"
 	"go/printer"
 	"go/token"
@@ -69,6 +70,10 @@ type options struct {
 		Exec    string `long:"exec" description:"Execute this command for every mutation"`
 		Timeout uint   `long:"exec-timeout" description:"Sets a timeout for the command execution (in seconds)" default:"10"`
 	} `group:"Exec options"`
+
+	Test struct {
+		Recursive bool `long:"test-recursive" description:"Defines if the executer should test recursively"`
+	} `group:"Test options"`
 
 	Remaining struct {
 		Targets []string `description:"Packages, directories and files even with patterns"`
@@ -286,6 +291,11 @@ MUTATOR:
 }
 
 func mutate(opts *options, mutators []mutator.Mutator, mutationBlackList map[string]struct{}, mutationID int, file string, fset *token.FileSet, src ast.Node, node ast.Node, tmpFile string, execs []string, stats *Stats) int {
+	p, err := build.ImportDir(filepath.Dir(file), build.FindOnly)
+	if err != nil {
+		panic(err)
+	}
+
 	for _, m := range mutators {
 		debug(opts, "Mutator %s", m)
 
@@ -320,9 +330,13 @@ func mutate(opts *options, mutators []mutator.Mutator, mutationBlackList map[str
 						"MUTATE_CHANGED=" + mutationFile,
 						fmt.Sprintf("MUTATE_DEBUG=%t", opts.General.Debug),
 						"MUTATE_ORIGINAL=" + file,
+						"MUTATE_PACKAGE=" + p.ImportPath,
 						fmt.Sprintf("MUTATE_TIMEOUT=%d", opts.Exec.Timeout),
 						fmt.Sprintf("MUTATE_VERBOSE=%t", opts.General.Verbose),
 					}...)
+					if opts.Test.Recursive {
+						execCommand.Env = append(execCommand.Env, "TEST_RECURSIVE=true")
+					}
 
 					err = execCommand.Start()
 					if err != nil {

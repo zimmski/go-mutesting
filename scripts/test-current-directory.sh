@@ -1,5 +1,14 @@
 #!/bin/bash
 
+# This exec script implements
+# - the replacement of the original file with the mutation,
+# - the execution of all tests originating from the current directory,
+# - and the reporting if the mutation was killed.
+
+if [ -z ${MUTATE_CHANGED+x} ]; then echo "MUTATE_CHANGED is not set"; exit 1; fi
+if [ -z ${MUTATE_ORIGINAL+x} ]; then echo "MUTATE_ORIGINAL is not set"; exit 1; fi
+if [ -z ${MUTATE_PACKAGE+x} ]; then echo "MUTATE_PACKAGE is not set"; exit 1; fi
+
 function clean_up {
 	if [ -f $MUTATE_ORIGINAL.tmp ];
 	then
@@ -21,7 +30,11 @@ cp $MUTATE_CHANGED $MUTATE_ORIGINAL
 
 export MUTATE_TIMEOUT=${MUTATE_TIMEOUT:-10}
 
-GOMUTESTING_TEST=$(go test -timeout $(printf '%ds' $MUTATE_TIMEOUT) ./... 2>&1)
+if [ -n "$TEST_RECURSIVE" ]; then
+	TEST_RECURSIVE="/..."
+fi
+
+GOMUTESTING_TEST=$(go test -timeout $(printf '%ds' $MUTATE_TIMEOUT) .$TEST_RECURSIVE 2>&1)
 export GOMUTESTING_RESULT=$?
 
 if [ "$MUTATE_DEBUG" = true ] ; then

@@ -8,7 +8,7 @@ The following command mutates the go-mutesting project with all available mutato
 
 ```bash
 cd $GOPATH/src/github.com/zimmski/go-mutesting
-go-mutesting --exec "$GOPATH/src/github.com/zimmski/go-mutesting/scripts/simple.sh" --exec-timeout 1 github.com/zimmski/go-mutesting/...
+go-mutesting --exec "$GOPATH/src/github.com/zimmski/go-mutesting/scripts/test-mutated-package.sh" --exec-timeout 1 github.com/zimmski/go-mutesting/...
 ```
 
 The execution of this command prints for every mutation if it was successfully tested or not. If not, the source code patch is printed out, so the mutation can be investigated. The following shows an example for a patch of a mutation.
@@ -79,7 +79,7 @@ go-mutesting --help
 
 > **Note**: This README describes only a few of the available options and arguments. It is therefore advisable to examine the help.
 
-The targets of the mutation testing can be defined as arguments to the binary. Every target can be either a Go source file, a directory or a package. Directories and packages can also include the `...`wildcard pattern which will search recursively for Go source files. Test source files with the ending `_test` are excluded, since this would interfere with testing the mutation most of the time.
+The targets of the mutation testing can be defined as arguments to the binary. Every target can be either a Go source file, a directory or a package. Directories and packages can also include the `...` wildcard pattern which will search recursively for Go source files. Test source files with the ending `_test` are excluded, since this would interfere with testing the mutation most of the time.
 
 The following example will gather all Go files which are defined by the targets and generate mutations with all available mutators of the binary.
 
@@ -87,11 +87,11 @@ The following example will gather all Go files which are defined by the targets 
 go-mutesting parse.go example/ github.com/zimmski/go-mutesting/mutator/...
 ```
 
-Since every mutation has to be tested it is necessary to define a [command](#write-mutation-exec-commands) with the `--exec` option. The [scripts](/scripts) directory holds basic exec commands for Go projects. The [simple.sh](/scripts/simple.sh) script for example implements the replacement of the original file with the mutation, the execution of all tests of the current directory and sub-directories, and the reporting if the mutation was killed. It can be for example used to test the [github.com/zimmski/go-mutesting/example](/example) package.
+Since every mutation has to be tested it is necessary to define a [command](#write-mutation-exec-commands) with the `--exec` option. The [scripts](/scripts) directory holds basic exec commands for Go projects. The [test-mutated-package.sh](/scripts/test-mutated-package.sh) script for example implements the replacement of the original file with the mutation, the execution of all tests of the package of the mutated file, and the reporting if the mutation was killed. It can be for example used to test the [github.com/zimmski/go-mutesting/example](/example) package.
 
 ```bash
 cd $GOPATH/src/github.com/zimmski/go-mutesting/example
-go-mutesting --exec "$GOPATH/src/github.com/zimmski/go-mutesting/scripts/simple.sh" github.com/zimmski/go-mutesting/example
+go-mutesting --exec "$GOPATH/src/github.com/zimmski/go-mutesting/scripts/test-mutated-package.sh" github.com/zimmski/go-mutesting/example
 ```
 
 The execution will print the following output.
@@ -151,7 +151,7 @@ The blacklist file, which is named `example.blacklist` in this example, can then
 
 ```bash
 cd $GOPATH/src/github.com/zimmski/go-mutesting/example
-go-mutesting --exec "$GOPATH/src/github.com/zimmski/go-mutesting/scripts/simple.sh" --blacklist example.blacklist github.com/zimmski/go-mutesting/example
+go-mutesting --exec "$GOPATH/src/github.com/zimmski/go-mutesting/scripts/test-mutated-package.sh" --blacklist example.blacklist github.com/zimmski/go-mutesting/example
 ```
 
 The execution will print the following output.
@@ -200,8 +200,10 @@ The command is given a set of environment variables which define exactly one mut
 | MUTATE_CHANGED  | Defines the filename to the mutation of the original file.     |
 | MUTATE_DEBUG    | Defines if debugging output should be printed.                 |
 | MUTATE_ORIGINAL | Defines the filename to the original file which was mutated.   |
+| MUTATE_PACKAGE  | Defines the import path of the origianl file.                  |
 | MUTATE_TIMEOUT  | Defines a timeout which should be honored by the exec command. |
 | MUTATE_VERBOSE  | Defines if verbose output should be printed.                   |
+| TEST_RECURSIVE  | Defines if tests should be run recursively.                    |
 
 A command must exit with an appropriate exit code.
 

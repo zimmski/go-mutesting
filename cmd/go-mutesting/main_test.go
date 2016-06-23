@@ -13,7 +13,7 @@ func TestMain(t *testing.T) {
 	testMain(
 		t,
 		"../../example",
-		[]string{"--exec", "../scripts/simple.sh", "--exec-timeout", "1", "./..."},
+		[]string{"--exec", "../scripts/test-mutated-package.sh", "--exec-timeout", "1", "./..."},
 		returnOk,
 		"The mutation score is 0.538462 (7 passed, 6 failed, 1 skipped, total is 14)",
 	)
@@ -23,7 +23,7 @@ func TestMainMatch(t *testing.T) {
 	testMain(
 		t,
 		"../../example",
-		[]string{"--exec", "../scripts/simple.sh", "--exec-timeout", "1", "--match", "baz", "./..."},
+		[]string{"--exec", "../scripts/test-mutated-package.sh", "--exec-timeout", "1", "--match", "baz", "./..."},
 		returnOk,
 		"The mutation score is 0.000000 (0 passed, 1 failed, 0 skipped, total is 1)",
 	)
