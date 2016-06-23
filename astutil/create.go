@@ -10,7 +10,7 @@ func CreateNoopOfStatement(stmt ast.Stmt) ast.Stmt {
 	return CreateNoopOfStatements([]ast.Stmt{stmt})
 }
 
-// CreateNoopOfStatement creates a syntactically safe noop statement out of a given statement.
+// CreateNoopOfStatements creates a syntactically safe noop statement out of a given statement.
 func CreateNoopOfStatements(stmts []ast.Stmt) ast.Stmt {
 	var ids []ast.Expr
 	for _, stmt := range stmts {
