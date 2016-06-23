@@ -12,7 +12,7 @@ func main() {
 	for i != 4 {
 		switch {
 		case i == 1:
-
+			_, _ = fmt.Println, i
 		case i == 2:
 			fmt.Println(i * 2)
 		default:

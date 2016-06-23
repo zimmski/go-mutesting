@@ -11,7 +11,7 @@ func main() {
 
 	for i != 4 {
 		if i == 1 {
-
+			_, _ = fmt.Println, i
 		} else if i == 2 {
 			fmt.Println(i * 2)
 		} else {

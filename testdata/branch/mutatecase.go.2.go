@@ -16,7 +16,7 @@ func main() {
 		case i == 2:
 			fmt.Println(i * 2)
 		default:
-
+			_, _ = fmt.Println, i
 		}
 
 		i++
