@@ -3,6 +3,7 @@ package branch
 import (
 	"go/ast"
 
+	"github.com/zimmski/go-mutesting/astutil"
 	"github.com/zimmski/go-mutesting/mutator"
 )
 
@@ -56,9 +57,7 @@ func (m *MutatorElse) Mutate(node ast.Node, changed chan bool) {
 	}
 
 	old := n.Else
-	n.Else = &ast.EmptyStmt{
-		Semicolon: n.Else.Pos(),
-	}
+	n.Else = astutil.CreateNoopOfStatement(old)
 
 	changed <- true
 	<-changed

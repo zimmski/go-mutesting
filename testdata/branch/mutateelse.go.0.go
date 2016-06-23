@@ -15,7 +15,7 @@ func main() {
 		} else if i == 2 {
 			fmt.Println(i * 2)
 		} else {
-
+			_, _ = fmt.Println, i
 		}
 
 		i++

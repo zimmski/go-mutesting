@@ -14,7 +14,7 @@ func main() {
 		case i == 1:
 			fmt.Println(i)
 		case i == 2:
-
+			_, _ = fmt.Println, i
 		default:
 			fmt.Println(i * 3)
 		}
