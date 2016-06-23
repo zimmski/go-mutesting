@@ -8,7 +8,7 @@ The following command mutates the go-mutesting project with all available mutato
 
 ```bash
 cd $GOPATH/src/github.com/zimmski/go-mutesting
-go-mutesting --exec "$GOPATH/src/github.com/zimmski/go-mutesting/scripts/simple.sh" --exec-timeout 1 github.com/zimmski/go-mutesting/...
+go-mutesting --exec "$GOPATH/src/github.com/zimmski/go-mutesting/scripts/test-recursively.sh" --exec-timeout 1 github.com/zimmski/go-mutesting/...
 ```
 
 The execution of this command prints for every mutation if it was successfully tested or not. If not, the source code patch is printed out, so the mutation can be investigated. The following shows an example for a patch of a mutation.
@@ -87,11 +87,11 @@ The following example will gather all Go files which are defined by the targets 
 go-mutesting parse.go example/ github.com/zimmski/go-mutesting/mutator/...
 ```
 
-Since every mutation has to be tested it is necessary to define a [command](#write-mutation-exec-commands) with the `--exec` option. The [scripts](/scripts) directory holds basic exec commands for Go projects. The [simple.sh](/scripts/simple.sh) script for example implements the replacement of the original file with the mutation, the execution of all tests of the current directory and sub-directories, and the reporting if the mutation was killed. It can be for example used to test the [github.com/zimmski/go-mutesting/example](/example) package.
+Since every mutation has to be tested it is necessary to define a [command](#write-mutation-exec-commands) with the `--exec` option. The [scripts](/scripts) directory holds basic exec commands for Go projects. The [test-recursively.sh](/scripts/test-recursively.sh) script for example implements the replacement of the original file with the mutation, the execution of all tests of the current directory and sub-directories, and the reporting if the mutation was killed. It can be for example used to test the [github.com/zimmski/go-mutesting/example](/example) package.
 
 ```bash
 cd $GOPATH/src/github.com/zimmski/go-mutesting/example
-go-mutesting --exec "$GOPATH/src/github.com/zimmski/go-mutesting/scripts/simple.sh" github.com/zimmski/go-mutesting/example
+go-mutesting --exec "$GOPATH/src/github.com/zimmski/go-mutesting/scripts/test-recursively.sh" github.com/zimmski/go-mutesting/example
 ```
 
 The execution will print the following output.
@@ -151,7 +151,7 @@ The blacklist file, which is named `example.blacklist` in this example, can then
 
 ```bash
 cd $GOPATH/src/github.com/zimmski/go-mutesting/example
-go-mutesting --exec "$GOPATH/src/github.com/zimmski/go-mutesting/scripts/simple.sh" --blacklist example.blacklist github.com/zimmski/go-mutesting/example
+go-mutesting --exec "$GOPATH/src/github.com/zimmski/go-mutesting/scripts/test-recursively.sh" --blacklist example.blacklist github.com/zimmski/go-mutesting/example
 ```
 
 The execution will print the following output.
