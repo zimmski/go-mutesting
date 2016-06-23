@@ -7,6 +7,12 @@ export ROOT_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 $(eval $(ARGS):;@:) # turn arguments into do-nothing targets
 export ARGS
 
+ifdef ARGS
+	PKG_TEST := $(ARGS)
+else
+	PKG_TEST := $(PKG)/...
+endif
+
 all: install-tools install-dependencies install lint test
 
 clean:
@@ -37,8 +43,8 @@ install-tools:
 lint:
 	$(ROOT_DIR)/scripts/lint.sh
 test:
-	go test -race -test.timeout 60s $(PKG)/...
+	go test -race -test.timeout 60s $(PKG_TEST)
 test-verbose:
-	go test -race -test.timeout 60s -v $(PKG)/...
+	go test -race -test.timeout 60s -v $(PKG_TEST)
 test-with-coverage:
 	ginkgo -r -cover -race -skipPackage="testdata"
