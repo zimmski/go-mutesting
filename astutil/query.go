@@ -31,3 +31,27 @@ func (w *identifierWalker) Visit(node ast.Node) ast.Visitor {
 
 	return w
 }
+
+// Functions returns all found functions.
+func Functions(n ast.Node) []*ast.FuncDecl {
+	w := &functionWalker{}
+
+	ast.Walk(w, n)
+
+	return w.functions
+}
+
+type functionWalker struct {
+	functions []*ast.FuncDecl
+}
+
+func (w *functionWalker) Visit(node ast.Node) ast.Visitor {
+	switch n := node.(type) {
+	case *ast.FuncDecl:
+		w.functions = append(w.functions, n)
+
+		return nil
+	}
+
+	return w
+}

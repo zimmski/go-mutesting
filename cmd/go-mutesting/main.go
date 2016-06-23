@@ -13,6 +13,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"syscall"
 
@@ -21,6 +22,7 @@ import (
 	"github.com/zimmski/osutil"
 
 	"github.com/zimmski/go-mutesting"
+	"github.com/zimmski/go-mutesting/astutil"
 	"github.com/zimmski/go-mutesting/mutator"
 	_ "github.com/zimmski/go-mutesting/mutator/branch"
 	_ "github.com/zimmski/go-mutesting/mutator/expression"
@@ -58,6 +60,10 @@ type options struct {
 		DisableMutators []string `long:"disable" description:"Disable mutator by their name or using * as a suffix pattern"`
 		ListMutators    bool     `long:"list-mutators" description:"List all available mutators"`
 	} `group:"Mutator options"`
+
+	Filter struct {
+		Match string `long:"match" description:"Only functions are mutated that confirm to the arguments regex"`
+	} `group:"Filter options"`
 
 	Exec struct {
 		Exec    string `long:"exec" description:"Execute this command for every mutation"`
@@ -126,9 +132,15 @@ func exitError(format string, args ...interface{}) int {
 	return returnError
 }
 
+type Stats struct {
+	passed  int
+	failed  int
+	skipped int
+}
+
 func mainCmd(args []string) int {
-	var opts = new(options)
-	var mutationBlackList = make(map[string]struct{})
+	var opts = &options{}
+	var mutationBlackList = map[string]struct{}{}
 
 	if exit, exitCode := checkArguments(args, opts); exit {
 		return exitCode
@@ -214,9 +226,7 @@ MUTATOR:
 		execs = strings.Split(opts.Exec.Exec, " ")
 	}
 
-	passed := 0
-	failed := 0
-	skipped := 0
+	stats := &Stats{}
 
 	for _, file := range files {
 		debug(opts, "Mutate %q", file)
@@ -240,95 +250,21 @@ MUTATOR:
 		}
 		debug(opts, "Save original into %q", originalFile)
 
-		i := 0
+		mutationID := 0
 
-		for _, m := range mutators {
-			debug(opts, "Mutator %s", m)
-
-			changed := mutesting.MutateWalk(src, m)
-
-			for {
-				_, ok := <-changed
-
-				if !ok {
-					break
-				}
-
-				mutationFile := fmt.Sprintf("%s.%d", tmpFile, i)
-				checksum, duplicate, err := saveAST(mutationBlackList, mutationFile, fset, src)
-				if err != nil {
-					panic(err)
-				}
-				if duplicate {
-					debug(opts, "%q is a duplicate, we ignore it", mutationFile)
-				} else {
-					debug(opts, "Save mutation into %q with checksum %s", mutationFile, checksum)
-
-					if len(execs) > 0 {
-						debug(opts, "Execute %q for mutation", opts.Exec.Exec)
-
-						execCommand := exec.Command(execs[0], execs[1:]...)
-
-						execCommand.Stderr = os.Stderr
-						execCommand.Stdout = os.Stdout
-
-						execCommand.Env = append(os.Environ(), []string{
-							"MUTATE_CHANGED=" + mutationFile,
-							fmt.Sprintf("MUTATE_DEBUG=%t", opts.General.Debug),
-							"MUTATE_ORIGINAL=" + file,
-							fmt.Sprintf("MUTATE_TIMEOUT=%d", opts.Exec.Timeout),
-							fmt.Sprintf("MUTATE_VERBOSE=%t", opts.General.Verbose),
-						}...)
-
-						err = execCommand.Start()
-						if err != nil {
-							panic(err)
-						}
-
-						// TODO timeout here
-
-						err = execCommand.Wait()
-
-						var execExitCode int
-						if err == nil {
-							execExitCode = 0
-						} else if e, ok := err.(*exec.ExitError); ok {
-							execExitCode = e.Sys().(syscall.WaitStatus).ExitStatus()
-						} else {
-							panic(err)
-						}
-
-						debug(opts, "Exited with %d", execExitCode)
-
-						msg := fmt.Sprintf("%q with checksum %s", mutationFile, checksum)
-
-						switch execExitCode {
-						case 0:
-							fmt.Printf("PASS %s\n", msg)
-
-							passed++
-						case 1:
-							fmt.Printf("FAIL %s\n", msg)
-
-							failed++
-						case 2:
-							fmt.Printf("SKIP %s\n", msg)
-
-							skipped++
-						default:
-							fmt.Printf("UNKOWN exit code for %s\n", msg)
-						}
-					}
-				}
-
-				changed <- true
-
-				// ignore original state
-				<-changed
-				changed <- true
-
-				i++
+		if opts.Filter.Match != "" {
+			m, err := regexp.Compile(opts.Filter.Match)
+			if err != nil {
+				return exitError("Match regex is not valid: %v", err)
 			}
+
+			for _, f := range astutil.Functions(src) {
+				if m.MatchString(f.Name.Name) {
+					mutationID = mutate(opts, mutators, mutationBlackList, mutationID, file, fset, src, f, tmpFile, execs, stats)
+				}
+			}
+		} else {
+			mutationID = mutate(opts, mutators, mutationBlackList, mutationID, file, fset, src, src, tmpFile, execs, stats)
 		}
 	}
 
@@ -341,12 +277,105 @@ MUTATOR:
 	}
 
 	if len(execs) > 0 {
-		fmt.Printf("The mutation score is %f (%d passed, %d failed, %d skipped, total is %d)\n", float64(passed)/float64(passed+failed), passed, failed, skipped, passed+failed+skipped)
+		fmt.Printf("The mutation score is %f (%d passed, %d failed, %d skipped, total is %d)\n", float64(stats.passed)/float64(stats.passed+stats.failed), stats.passed, stats.failed, stats.skipped, stats.passed+stats.failed+stats.skipped)
 	} else {
 		fmt.Println("Cannot do a mutation testing summary since no exec command was given.")
 	}
 
 	return returnOk
+}
+
+func mutate(opts *options, mutators []mutator.Mutator, mutationBlackList map[string]struct{}, mutationID int, file string, fset *token.FileSet, src ast.Node, node ast.Node, tmpFile string, execs []string, stats *Stats) int {
+	for _, m := range mutators {
+		debug(opts, "Mutator %s", m)
+
+		changed := mutesting.MutateWalk(node, m)
+
+		for {
+			_, ok := <-changed
+
+			if !ok {
+				break
+			}
+
+			mutationFile := fmt.Sprintf("%s.%d", tmpFile, mutationID)
+			checksum, duplicate, err := saveAST(mutationBlackList, mutationFile, fset, src)
+			if err != nil {
+				panic(err)
+			}
+			if duplicate {
+				debug(opts, "%q is a duplicate, we ignore it", mutationFile)
+			} else {
+				debug(opts, "Save mutation into %q with checksum %s", mutationFile, checksum)
+
+				if len(execs) > 0 {
+					debug(opts, "Execute %q for mutation", opts.Exec.Exec)
+
+					execCommand := exec.Command(execs[0], execs[1:]...)
+
+					execCommand.Stderr = os.Stderr
+					execCommand.Stdout = os.Stdout
+
+					execCommand.Env = append(os.Environ(), []string{
+						"MUTATE_CHANGED=" + mutationFile,
+						fmt.Sprintf("MUTATE_DEBUG=%t", opts.General.Debug),
+						"MUTATE_ORIGINAL=" + file,
+						fmt.Sprintf("MUTATE_TIMEOUT=%d", opts.Exec.Timeout),
+						fmt.Sprintf("MUTATE_VERBOSE=%t", opts.General.Verbose),
+					}...)
+
+					err = execCommand.Start()
+					if err != nil {
+						panic(err)
+					}
+
+					// TODO timeout here
+
+					err = execCommand.Wait()
+
+					var execExitCode int
+					if err == nil {
+						execExitCode = 0
+					} else if e, ok := err.(*exec.ExitError); ok {
+						execExitCode = e.Sys().(syscall.WaitStatus).ExitStatus()
+					} else {
+						panic(err)
+					}
+
+					debug(opts, "Exited with %d", execExitCode)
+
+					msg := fmt.Sprintf("%q with checksum %s", mutationFile, checksum)
+
+					switch execExitCode {
+					case 0:
+						fmt.Printf("PASS %s\n", msg)
+
+						stats.passed++
+					case 1:
+						fmt.Printf("FAIL %s\n", msg)
+
+						stats.failed++
+					case 2:
+						fmt.Printf("SKIP %s\n", msg)
+
+						stats.skipped++
+					default:
+						fmt.Printf("UNKOWN exit code for %s\n", msg)
+					}
+				}
+			}
+
+			changed <- true
+
+			// ignore original state
+			<-changed
+			changed <- true
+
+			mutationID++
+		}
+	}
+
+	return mutationID
 }
 
 func main() {
