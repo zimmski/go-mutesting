@@ -71,6 +71,10 @@ type options struct {
 		Timeout uint   `long:"exec-timeout" description:"Sets a timeout for the command execution (in seconds)" default:"10"`
 	} `group:"Exec options"`
 
+	Test struct {
+		Recursive bool `long:"test-recursive" description:"Defines if the executer should test recursively"`
+	} `group:"Test options"`
+
 	Remaining struct {
 		Targets []string `description:"Packages, directories and files even with patterns"`
 	} `positional-args:"true" required:"true"`
@@ -330,6 +334,9 @@ func mutate(opts *options, mutators []mutator.Mutator, mutationBlackList map[str
 						fmt.Sprintf("MUTATE_TIMEOUT=%d", opts.Exec.Timeout),
 						fmt.Sprintf("MUTATE_VERBOSE=%t", opts.General.Verbose),
 					}...)
+					if opts.Test.Recursive {
+						execCommand.Env = append(execCommand.Env, "TEST_RECURSIVE=true")
+					}
 
 					err = execCommand.Start()
 					if err != nil {

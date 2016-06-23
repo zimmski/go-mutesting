@@ -30,7 +30,11 @@ cp $MUTATE_CHANGED $MUTATE_ORIGINAL
 
 export MUTATE_TIMEOUT=${MUTATE_TIMEOUT:-10}
 
-GOMUTESTING_TEST=$(go test -timeout $(printf '%ds' $MUTATE_TIMEOUT) $MUTATE_PACKAGE 2>&1)
+if [ -n "$TEST_RECURSIVE" ]; then
+	TEST_RECURSIVE="/..."
+fi
+
+GOMUTESTING_TEST=$(go test -timeout $(printf '%ds' $MUTATE_TIMEOUT) $MUTATE_PACKAGE$TEST_RECURSIVE 2>&1)
 export GOMUTESTING_RESULT=$?
 
 if [ "$MUTATE_DEBUG" = true ] ; then

@@ -79,7 +79,7 @@ go-mutesting --help
 
 > **Note**: This README describes only a few of the available options and arguments. It is therefore advisable to examine the help.
 
-The targets of the mutation testing can be defined as arguments to the binary. Every target can be either a Go source file, a directory or a package. Directories and packages can also include the `...`wildcard pattern which will search recursively for Go source files. Test source files with the ending `_test` are excluded, since this would interfere with testing the mutation most of the time.
+The targets of the mutation testing can be defined as arguments to the binary. Every target can be either a Go source file, a directory or a package. Directories and packages can also include the `...` wildcard pattern which will search recursively for Go source files. Test source files with the ending `_test` are excluded, since this would interfere with testing the mutation most of the time.
 
 The following example will gather all Go files which are defined by the targets and generate mutations with all available mutators of the binary.
 
@@ -203,6 +203,7 @@ The command is given a set of environment variables which define exactly one mut
 | MUTATE_PACKAGE  | Defines the import path of the origianl file.                  |
 | MUTATE_TIMEOUT  | Defines a timeout which should be honored by the exec command. |
 | MUTATE_VERBOSE  | Defines if verbose output should be printed.                   |
+| TEST_RECURSIVE  | Defines if tests should be run recursively.                    |
 
 A command must exit with an appropriate exit code.
 
