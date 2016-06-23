@@ -13,6 +13,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"syscall"
 
@@ -21,6 +22,7 @@ import (
 	"github.com/zimmski/osutil"
 
 	"github.com/zimmski/go-mutesting"
+	"github.com/zimmski/go-mutesting/astutil"
 	"github.com/zimmski/go-mutesting/mutator"
 	_ "github.com/zimmski/go-mutesting/mutator/branch"
 	_ "github.com/zimmski/go-mutesting/mutator/expression"
@@ -58,6 +60,10 @@ type options struct {
 		DisableMutators []string `long:"disable" description:"Disable mutator by their name or using * as a suffix pattern"`
 		ListMutators    bool     `long:"list-mutators" description:"List all available mutators"`
 	} `group:"Mutator options"`
+
+	Filter struct {
+		Match string `long:"match" description:"Only functions are mutated that confirm to the arguments regex"`
+	} `group:"Filter options"`
 
 	Exec struct {
 		Exec    string `long:"exec" description:"Execute this command for every mutation"`
@@ -245,7 +251,21 @@ MUTATOR:
 		debug(opts, "Save original into %q", originalFile)
 
 		mutationID := 0
-		mutationID = mutate(opts, mutators, mutationBlackList, mutationID, file, fset, src, tmpFile, execs, stats)
+
+		if opts.Filter.Match != "" {
+			m, err := regexp.Compile(opts.Filter.Match)
+			if err != nil {
+				return exitError("Match regex is not valid: %v", err)
+			}
+
+			for _, f := range astutil.Functions(src) {
+				if m.MatchString(f.Name.Name) {
+					mutationID = mutate(opts, mutators, mutationBlackList, mutationID, file, fset, src, f, tmpFile, execs, stats)
+				}
+			}
+		} else {
+			mutationID = mutate(opts, mutators, mutationBlackList, mutationID, file, fset, src, src, tmpFile, execs, stats)
+		}
 	}
 
 	if !opts.General.DoNotRemoveTmpFolder {
@@ -265,7 +285,7 @@ MUTATOR:
 	return returnOk
 }
 
-func mutate(opts *options, mutators []mutator.Mutator, mutationBlackList map[string]struct{}, mutationID int, file string, fset *token.FileSet, node ast.Node, tmpFile string, execs []string, stats *Stats) int {
+func mutate(opts *options, mutators []mutator.Mutator, mutationBlackList map[string]struct{}, mutationID int, file string, fset *token.FileSet, src ast.Node, node ast.Node, tmpFile string, execs []string, stats *Stats) int {
 	for _, m := range mutators {
 		debug(opts, "Mutator %s", m)
 
@@ -279,7 +299,7 @@ func mutate(opts *options, mutators []mutator.Mutator, mutationBlackList map[str
 			}
 
 			mutationFile := fmt.Sprintf("%s.%d", tmpFile, mutationID)
-			checksum, duplicate, err := saveAST(mutationBlackList, mutationFile, fset, node)
+			checksum, duplicate, err := saveAST(mutationBlackList, mutationFile, fset, src)
 			if err != nil {
 				panic(err)
 			}

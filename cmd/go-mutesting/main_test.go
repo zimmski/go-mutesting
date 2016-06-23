@@ -10,6 +10,26 @@ import (
 )
 
 func TestMain(t *testing.T) {
+	testMain(
+		t,
+		"../../example",
+		[]string{"--exec", "../scripts/simple.sh", "--exec-timeout", "1", "./..."},
+		returnOk,
+		"The mutation score is 0.538462 (7 passed, 6 failed, 1 skipped, total is 14)",
+	)
+}
+
+func TestMainMatch(t *testing.T) {
+	testMain(
+		t,
+		"../../example",
+		[]string{"--exec", "../scripts/simple.sh", "--exec-timeout", "1", "--match", "baz", "./..."},
+		returnOk,
+		"The mutation score is 0.000000 (0 passed, 1 failed, 0 skipped, total is 1)",
+	)
+}
+
+func testMain(t *testing.T, root string, exec []string, expectedExitCode int, contains string) {
 	saveStderr := os.Stderr
 	saveStdout := os.Stdout
 	saveCwd, err := os.Getwd()
@@ -20,7 +40,7 @@ func TestMain(t *testing.T) {
 
 	os.Stderr = w
 	os.Stdout = w
-	assert.Nil(t, os.Chdir("../../example"))
+	assert.Nil(t, os.Chdir(root))
 
 	bufChannel := make(chan string)
 
@@ -33,7 +53,7 @@ func TestMain(t *testing.T) {
 		bufChannel <- buf.String()
 	}()
 
-	exitCode := mainCmd([]string{"--exec", "../scripts/simple.sh", "--exec-timeout", "1", "./..."})
+	exitCode := mainCmd(exec)
 
 	assert.Nil(t, w.Close())
 
@@ -43,6 +63,6 @@ func TestMain(t *testing.T) {
 
 	out := <-bufChannel
 
-	assert.Equal(t, returnOk, exitCode)
-	assert.Contains(t, out, "The mutation score is 0.583333 (7 passed, 5 failed, 1 skipped, total is 13)")
+	assert.Equal(t, expectedExitCode, exitCode)
+	assert.Contains(t, out, contains)
 }

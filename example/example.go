@@ -46,3 +46,11 @@ func foo() int {
 func bar() int {
 	return 4
 }
+
+func baz() int {
+	i := 1
+
+	i = i + i
+
+	return i
+}
