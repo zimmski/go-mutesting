@@ -5,6 +5,7 @@ import (
 	"crypto/md5"
 	"fmt"
 	"go/ast"
+	"go/build"
 	"go/format"
 	"go/printer"
 	"go/token"
@@ -286,6 +287,11 @@ MUTATOR:
 }
 
 func mutate(opts *options, mutators []mutator.Mutator, mutationBlackList map[string]struct{}, mutationID int, file string, fset *token.FileSet, src ast.Node, node ast.Node, tmpFile string, execs []string, stats *Stats) int {
+	p, err := build.ImportDir(filepath.Dir(file), build.FindOnly)
+	if err != nil {
+		panic(err)
+	}
+
 	for _, m := range mutators {
 		debug(opts, "Mutator %s", m)
 
@@ -320,6 +326,7 @@ func mutate(opts *options, mutators []mutator.Mutator, mutationBlackList map[str
 						"MUTATE_CHANGED=" + mutationFile,
 						fmt.Sprintf("MUTATE_DEBUG=%t", opts.General.Debug),
 						"MUTATE_ORIGINAL=" + file,
+						"MUTATE_PACKAGE=" + p.ImportPath,
 						fmt.Sprintf("MUTATE_TIMEOUT=%d", opts.Exec.Timeout),
 						fmt.Sprintf("MUTATE_VERBOSE=%t", opts.General.Verbose),
 					}...)
