@@ -17,7 +17,7 @@ func MutatorElse(node ast.Node) []mutator.Mutation {
 	if !ok {
 		return nil
 	}
-	// we ignore else ifs and nil blocks
+	// We ignore else ifs and nil blocks
 	_, ok = n.Else.(*ast.IfStmt)
 	if ok || n.Else == nil {
 		return nil

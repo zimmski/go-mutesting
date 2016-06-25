@@ -347,7 +347,7 @@ func mutate(opts *options, mutators []mutator.Mutator, mutationBlackList map[str
 
 			changed <- true
 
-			// ignore original state
+			// Ignore original state
 			<-changed
 			changed <- true
 
