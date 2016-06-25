@@ -67,7 +67,8 @@ type options struct {
 	} `group:"Filter options"`
 
 	Exec struct {
-		Exec    string `long:"exec" description:"Execute this command for every mutation"`
+		Exec    string `long:"exec" description:"Execute this command for every mutation (by default the built-in exec command is used)"`
+		NoExec  bool   `long:"no-exec" description:"Skip the built-in exec command and just generate the mutations"`
 		Timeout uint   `long:"exec-timeout" description:"Sets a timeout for the command execution (in seconds)" default:"10"`
 	} `group:"Exec options"`
 
@@ -137,7 +138,7 @@ func exitError(format string, args ...interface{}) int {
 	return returnError
 }
 
-type Stats struct {
+type mutationStats struct {
 	passed  int
 	failed  int
 	skipped int
@@ -231,7 +232,7 @@ MUTATOR:
 		execs = strings.Split(opts.Exec.Exec, " ")
 	}
 
-	stats := &Stats{}
+	stats := &mutationStats{}
 
 	for _, file := range files {
 		debug(opts, "Mutate %q", file)
@@ -281,17 +282,17 @@ MUTATOR:
 		debug(opts, "Remove %q", tmpDir)
 	}
 
-	if len(execs) > 0 {
+	if !opts.Exec.NoExec {
 		fmt.Printf("The mutation score is %f (%d passed, %d failed, %d skipped, total is %d)\n", float64(stats.passed)/float64(stats.passed+stats.failed), stats.passed, stats.failed, stats.skipped, stats.passed+stats.failed+stats.skipped)
 	} else {
-		fmt.Println("Cannot do a mutation testing summary since no exec command was given.")
+		fmt.Println("Cannot do a mutation testing summary since no exec command was executed.")
 	}
 
 	return returnOk
 }
 
-func mutate(opts *options, mutators []mutator.Mutator, mutationBlackList map[string]struct{}, mutationID int, file string, fset *token.FileSet, src ast.Node, node ast.Node, tmpFile string, execs []string, stats *Stats) int {
-	p, err := build.ImportDir(filepath.Dir(file), build.FindOnly)
+func mutate(opts *options, mutators []mutator.Mutator, mutationBlackList map[string]struct{}, mutationID int, file string, fset *token.FileSet, src ast.Node, node ast.Node, tmpFile string, execs []string, stats *mutationStats) int {
+	pkg, err := build.ImportDir(filepath.Dir(file), build.FindOnly)
 	if err != nil {
 		panic(err)
 	}
@@ -318,43 +319,8 @@ func mutate(opts *options, mutators []mutator.Mutator, mutationBlackList map[str
 			} else {
 				debug(opts, "Save mutation into %q with checksum %s", mutationFile, checksum)
 
-				if len(execs) > 0 {
-					debug(opts, "Execute %q for mutation", opts.Exec.Exec)
-
-					execCommand := exec.Command(execs[0], execs[1:]...)
-
-					execCommand.Stderr = os.Stderr
-					execCommand.Stdout = os.Stdout
-
-					execCommand.Env = append(os.Environ(), []string{
-						"MUTATE_CHANGED=" + mutationFile,
-						fmt.Sprintf("MUTATE_DEBUG=%t", opts.General.Debug),
-						"MUTATE_ORIGINAL=" + file,
-						"MUTATE_PACKAGE=" + p.ImportPath,
-						fmt.Sprintf("MUTATE_TIMEOUT=%d", opts.Exec.Timeout),
-						fmt.Sprintf("MUTATE_VERBOSE=%t", opts.General.Verbose),
-					}...)
-					if opts.Test.Recursive {
-						execCommand.Env = append(execCommand.Env, "TEST_RECURSIVE=true")
-					}
-
-					err = execCommand.Start()
-					if err != nil {
-						panic(err)
-					}
-
-					// TODO timeout here
-
-					err = execCommand.Wait()
-
-					var execExitCode int
-					if err == nil {
-						execExitCode = 0
-					} else if e, ok := err.(*exec.ExitError); ok {
-						execExitCode = e.Sys().(syscall.WaitStatus).ExitStatus()
-					} else {
-						panic(err)
-					}
+				if !opts.Exec.NoExec {
+					execExitCode := mutateExec(opts, mutators, pkg, file, src, mutationFile, execs)
 
 					debug(opts, "Exited with %d", execExitCode)
 
@@ -390,6 +356,121 @@ func mutate(opts *options, mutators []mutator.Mutator, mutationBlackList map[str
 	}
 
 	return mutationID
+}
+
+func mutateExec(opts *options, mutators []mutator.Mutator, pkg *build.Package, file string, src ast.Node, mutationFile string, execs []string) (execExitCode int) {
+	if len(execs) == 0 {
+		debug(opts, "Execute built-in exec command for mutation")
+
+		diff, err := exec.Command("diff", "-u", file, mutationFile).CombinedOutput()
+		if err == nil {
+			execExitCode = 0
+		} else if e, ok := err.(*exec.ExitError); ok {
+			execExitCode = e.Sys().(syscall.WaitStatus).ExitStatus()
+		} else {
+			panic(err)
+		}
+		if execExitCode != 0 && execExitCode != 1 {
+			fmt.Printf("%s\n", diff)
+
+			panic("Could not execute diff on mutation file")
+		}
+
+		defer func() {
+			_ = os.Rename(file+".tmp", file)
+		}()
+
+		err = os.Rename(file, file+".tmp")
+		if err != nil {
+			panic(err)
+		}
+		err = osutil.CopyFile(mutationFile, file)
+		if err != nil {
+			panic(err)
+		}
+
+		pkgName := pkg.Name
+		if opts.Test.Recursive {
+			pkgName += "/..."
+		}
+
+		test, err := exec.Command("go", "test", "-timeout", fmt.Sprintf("%ds", opts.Exec.Timeout), pkgName).CombinedOutput()
+		if err == nil {
+			execExitCode = 0
+		} else if e, ok := err.(*exec.ExitError); ok {
+			execExitCode = e.Sys().(syscall.WaitStatus).ExitStatus()
+		} else {
+			panic(err)
+		}
+
+		if opts.General.Debug {
+			fmt.Printf("%s\n", test)
+		}
+
+		switch execExitCode {
+		case 0: // Tests passed -> FAIL
+			fmt.Printf("%s\n", diff)
+
+			execExitCode = 1
+		case 1: // Tests failed -> PASS
+			if opts.General.Debug {
+				fmt.Printf("%s\n", diff)
+			}
+
+			execExitCode = 0
+		case 2: // Did not compile -> SKIP
+			if opts.General.Verbose {
+				fmt.Println("Mutation did not compile")
+			}
+
+			if opts.General.Debug {
+				fmt.Printf("%s\n", diff)
+			}
+		default: // Unknown exit code -> SKIP
+			fmt.Println("Unknown exit code")
+			fmt.Printf("%s\n", diff)
+		}
+
+		return execExitCode
+	}
+
+	debug(opts, "Execute %q for mutation", opts.Exec.Exec)
+
+	execCommand := exec.Command(execs[0], execs[1:]...)
+
+	execCommand.Stderr = os.Stderr
+	execCommand.Stdout = os.Stdout
+
+	execCommand.Env = append(os.Environ(), []string{
+		"MUTATE_CHANGED=" + mutationFile,
+		fmt.Sprintf("MUTATE_DEBUG=%t", opts.General.Debug),
+		"MUTATE_ORIGINAL=" + file,
+		"MUTATE_PACKAGE=" + pkg.ImportPath,
+		fmt.Sprintf("MUTATE_TIMEOUT=%d", opts.Exec.Timeout),
+		fmt.Sprintf("MUTATE_VERBOSE=%t", opts.General.Verbose),
+	}...)
+	if opts.Test.Recursive {
+		execCommand.Env = append(execCommand.Env, "TEST_RECURSIVE=true")
+	}
+
+	err := execCommand.Start()
+	if err != nil {
+		panic(err)
+	}
+
+	// TODO timeout here
+
+	err = execCommand.Wait()
+
+	if err == nil {
+		execExitCode = 0
+	} else if e, ok := err.(*exec.ExitError); ok {
+		execExitCode = e.Sys().(syscall.WaitStatus).ExitStatus()
+	} else {
+		panic(err)
+	}
+
+	return execExitCode
 }
 
 func main() {
