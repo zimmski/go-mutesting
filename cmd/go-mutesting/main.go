@@ -397,7 +397,7 @@ func mutateExec(opts *options, pkg *build.Package, file string, src ast.Node, mu
 			panic(err)
 		}
 
-		pkgName := pkg.Name
+		pkgName := pkg.ImportPath
 		if opts.Test.Recursive {
 			pkgName += "/..."
 		}
