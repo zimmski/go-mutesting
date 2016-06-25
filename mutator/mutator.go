@@ -10,11 +10,8 @@ import (
 type Mutator interface {
 	fmt.Stringer
 
-	// Check validates how often a node can be mutated by a mutator
-	Check(node ast.Node) uint
-	// Mutate mutates a given node if it can be mutated by the mutator.
-	// It first checks if the given node can be mutated by the mutator. If the node cannot be mutated, false is send into the given control channel and the method returns. If the node can be mutated, the current state of the node is saved. Afterwards the node is mutated, true is send into the given control channel and the method waits on the channel to continue the process. After receiving a value from the channel the original state of the node is restored, true is send into the given control channel and the method waits on the channel to continue the process. After receiving a value from the channel the method returns which finishes the mutation process.
-	Mutate(node ast.Node, changed chan bool)
+	// Mutations returns a list of possible mutations for the given node.
+	Mutations(node ast.Node) []Mutation
 }
 
 var mutatorLookup = make(map[string]func() Mutator)
