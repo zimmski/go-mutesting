@@ -135,9 +135,9 @@ PASS "/tmp/go-mutesting-422402775//home/zimmski/go/src/github.com/zimmski/go-mut
 The mutation score is 0.750000 (6 passed, 2 failed, 0 skipped, total is 8)
 ```
 
-The output shows that eight mutations have been found and tested. Six of them passed which means that the test suite failed for these mutations and the mutations were therefore killed. However, two mutation did not fail the test suite. Their source code patches are shown in the output which can be used to investigate the mutations.
+The output shows that eight mutations have been found and tested. Six of them passed which means that the test suite failed for these mutations and the mutations were therefore killed. However, two mutations did not fail the test suite. Their source code patches are shown in the output which can be used to investigate these mutations.
 
-The summary also shows the **mutation score** which is a metric on how many mutations are killed by the test suite and therefore states the quality of the test suite. The mutation score is calculated by dividing the amount of all passed mutations with the amount of mutations that passed plus the amount of mutations that failed. A score of 1.0 means that all mutations have been killed.
+The summary also shows the **mutation score** which is a metric on how many mutations are killed by the test suite and therefore states the quality of the test suite. The mutation score is calculated by dividing the number of passed mutations by the number of total mutations, for the example above this would be 6/8=0.75. A score of 1.0 means that all mutations have been killed.
 
 ### <a name="black-list-false-positives"></a>Blacklist false positives
 
@@ -192,11 +192,11 @@ A mutation exec command is invoked for every mutation which is necessary to test
 1. **Setup** the source to include the mutation.
 2. **Test** the source by invoking the test suite and possible other test functionality.
 3. **Cleanup** all changes and remove all temporary assets.
-4. **Report** if the mutation was detected.
+4. **Report** if the mutation was killed.
 
-It is important to note that each invocation should be isolated and therefore stateless. This means that an invocation must not disturb other invocations.
+It is important to note that each invocation should be isolated and therefore stateless. This means that an invocation must not interfere with other invocations.
 
-The command is given a set of environment variables which define exactly one mutation.
+A set of environment variables, which define exactly one mutation, is passed on to the command.
 
 | Name            | Description                                                    |
 | :-------------- | :------------------------------------------------------------- |
@@ -204,7 +204,7 @@ The command is given a set of environment variables which define exactly one mut
 | MUTATE_DEBUG    | Defines if debugging output should be printed.                 |
 | MUTATE_ORIGINAL | Defines the filename to the original file which was mutated.   |
 | MUTATE_PACKAGE  | Defines the import path of the origianl file.                  |
-| MUTATE_TIMEOUT  | Defines a timeout which should be honored by the exec command. |
+| MUTATE_TIMEOUT  | Defines a timeout which should be taken into account by the exec command. |
 | MUTATE_VERBOSE  | Defines if verbose output should be printed.                   |
 | TEST_RECURSIVE  | Defines if tests should be run recursively.                    |
 
@@ -226,8 +226,8 @@ Examples for exec commands can be found in the [scripts](/scripts/exec) director
 | Name          | Description                                    |
 | :------------ | :--------------------------------------------- |
 | branch/case   | Empties case bodies.                           |
-| branch/if     | Empties branches of if and else if statements. |
-| branch/else   | Empties branches of else statements.           |
+| branch/if     | Empties branches of `if` and `else if` statements. |
+| branch/else   | Empties branches of `else` statements.           |
 
 ### Expression mutators
 
@@ -259,15 +259,15 @@ go-mutesting is not the first project to implement mutation testing for Go sourc
 
 All of them have significant flaws in comparison to go-mutesting:
 
-- Only one type (or even one case) of mutation is implemented
-- Can only be used for one mutator at a time (manbearpig, Golang-Mutation-testing)
-- Mutation is done by content which can lead to lots of invalid mutations (Golang-Mutation-testing)
-- New mutators are not easily implemented and integrated
-- Can only be used for one package or file at a time
-- Other scenarios as `go test` cannot be applied
-- Do not properly clean up or handle fatal failures
-- No automatic tests to ensure that the algorithms are working at all
-- Uses another language (Golang-Mutation-testing)
+- Only one type (or even one case) of mutation is implemented.
+- Can only be used for one mutator at a time (manbearpig, Golang-Mutation-testing).
+- Mutation is done by content which can lead to lots of invalid mutations (Golang-Mutation-testing).
+- New mutators are not easily implemented and integrated.
+- Can only be used for one package or file at a time.
+- Other scenarios as `go test` cannot be applied.
+- Do not properly clean up or handle fatal failures.
+- No automatic tests to ensure that the algorithms are working at all.
+- Uses another language (Golang-Mutation-testing).
 
 ## <a name="feature-request"></a>Can I make feature requests and report bugs and problems?
 
