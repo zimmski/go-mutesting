@@ -300,7 +300,12 @@ MUTATOR:
 }
 
 func mutate(opts *options, mutators []mutatorItem, mutationBlackList map[string]struct{}, mutationID int, file string, fset *token.FileSet, src ast.Node, node ast.Node, tmpFile string, execs []string, stats *mutationStats) int {
-	pkg, err := build.ImportDir(filepath.Dir(file), build.FindOnly)
+	dir, err := filepath.Abs(filepath.Dir(file))
+	if err != nil {
+		panic(err)
+	}
+
+	pkg, err := build.ImportDir(dir, build.FindOnly)
 	if err != nil {
 		panic(err)
 	}
