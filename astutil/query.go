@@ -20,7 +20,10 @@ type identifierWalker struct {
 var blacklistedIdentifiers = map[string]bool{
 	"_":      true,
 	"append": true,
+	"close":  true,
+	"go":     true,
 	"func":   true,
+	"len":    true,
 	"nil":    true,
 }
 
