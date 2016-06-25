@@ -17,16 +17,36 @@ type identifierWalker struct {
 	identifiers []ast.Expr
 }
 
+var blacklistedIdentifiers = map[string]bool{
+	"_":      true,
+	"append": true,
+	"func":   true,
+	"nil":    true,
+}
+
+func checkForSelectorExpr(node ast.Expr) bool {
+	switch n := node.(type) {
+	case *ast.Ident:
+		return true
+	case *ast.SelectorExpr:
+		return checkForSelectorExpr(n.X)
+	}
+
+	return false
+}
+
 func (w *identifierWalker) Visit(node ast.Node) ast.Visitor {
 	switch n := node.(type) {
 	case *ast.Ident:
-		if n.Name != "nil" {
+		if _, ok := blacklistedIdentifiers[n.Name]; !ok {
 			w.identifiers = append(w.identifiers, n)
 		}
 
 		return nil
 	case *ast.SelectorExpr:
-		w.identifiers = append(w.identifiers, n)
+		if checkForSelectorExpr(n) {
+			w.identifiers = append(w.identifiers, n)
+		}
 
 		return nil
 	}
