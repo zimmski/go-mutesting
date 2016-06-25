@@ -92,7 +92,7 @@ Every mutation has to be tested using an [exec command](#write-mutation-exec-com
 - Execute all tests of the package of the mutated file.
 - Report if the mutation was killed.
 
-Alternatively the `--exec` argument can be used to invoke an external exec command. The [/scripts/exec](/scripts/exec) directory holds basic exec commands for Go projects. The [test-mutated-package.sh](/scripts/exec/test-mutated-package.sh) script implements all steps of the built-in exec command. It can be for example used to test the [github.com/zimmski/go-mutesting/example](/example) package.
+Alternatively the `--exec` argument can be used to invoke an external exec command. The [/scripts/exec](/scripts/exec) directory holds basic exec commands for Go projects. The [test-mutated-package.sh](/scripts/exec/test-mutated-package.sh) script implements all steps and almost all features of the built-in exec command. It can be for example used to test the [github.com/zimmski/go-mutesting/example](/example) package.
 
 ```bash
 go-mutesting --exec "$GOPATH/src/github.com/zimmski/go-mutesting/scripts/exec/test-mutated-package.sh" github.com/zimmski/go-mutesting/example
