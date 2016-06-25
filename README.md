@@ -7,8 +7,7 @@ go-mutesting is a framework for performing mutation testing on Go source code. I
 The following command mutates the go-mutesting project with all available mutators.
 
 ```bash
-cd $GOPATH/src/github.com/zimmski/go-mutesting
-go-mutesting --exec "$GOPATH/src/github.com/zimmski/go-mutesting/scripts/test-mutated-package.sh" --exec-timeout 1 github.com/zimmski/go-mutesting/...
+go-mutesting github.com/zimmski/go-mutesting/...
 ```
 
 The execution of this command prints for every mutation if it was successfully tested or not. If not, the source code patch is printed out, so the mutation can be investigated. The following shows an example for a patch of a mutation.
@@ -71,27 +70,32 @@ go-mutesting includes a binary which is go-getable.
 go get -t -v github.com/zimmski/go-mutesting/...
 ```
 
-The binary's help can be invoked by executing the binary without arguments or with the `--help` option.
+The binary's help can be invoked by executing the binary without arguments or with the `--help` argument.
 
 ```bash
 go-mutesting --help
 ```
 
-> **Note**: This README describes only a few of the available options and arguments. It is therefore advisable to examine the help.
+> **Note**: This README describes only a few of the available arguments. It is therefore advisable to examine the output of the `--help` argument.
 
-The targets of the mutation testing can be defined as arguments to the binary. Every target can be either a Go source file, a directory or a package. Directories and packages can also include the `...` wildcard pattern which will search recursively for Go source files. Test source files with the ending `_test` are excluded, since this would interfere with testing the mutation most of the time.
+The targets of the mutation testing can be defined as arguments to the binary. Every target can be either a Go source file, a directory or a package. Directories and packages can also include the `...` wildcard pattern which will search recursively for Go source files. Test source files with the suffix `_test` are excluded, since this would interfere with the testing process most of the time.
 
-The following example will gather all Go files which are defined by the targets and generate mutations with all available mutators of the binary.
+The following example gathers all Go files which are defined by the targets and generate mutations with all available mutators of the binary.
 
 ```bash
 go-mutesting parse.go example/ github.com/zimmski/go-mutesting/mutator/...
 ```
 
-Since every mutation has to be tested it is necessary to define a [command](#write-mutation-exec-commands) with the `--exec` option. The [scripts](/scripts) directory holds basic exec commands for Go projects. The [test-mutated-package.sh](/scripts/test-mutated-package.sh) script for example implements the replacement of the original file with the mutation, the execution of all tests of the package of the mutated file, and the reporting if the mutation was killed. It can be for example used to test the [github.com/zimmski/go-mutesting/example](/example) package.
+Every mutation has to be tested using an [exec command](#write-mutation-exec-commands). By default the built-in exec command is used, which tests a mutation using the following steps:
+
+- Replace the original file with the mutation.
+- Execute all tests of the package of the mutated file.
+- Report if the mutation was killed.
+
+Alternatively the `--exec` argument can be used to invoke an external exec command. The [/scripts/exec](/scripts/exec) directory holds basic exec commands for Go projects. The [test-mutated-package.sh](/scripts/exec/test-mutated-package.sh) script implements all steps of the built-in exec command. It can be for example used to test the [github.com/zimmski/go-mutesting/example](/example) package.
 
 ```bash
-cd $GOPATH/src/github.com/zimmski/go-mutesting/example
-go-mutesting --exec "$GOPATH/src/github.com/zimmski/go-mutesting/scripts/test-mutated-package.sh" github.com/zimmski/go-mutesting/example
+go-mutesting --exec "$GOPATH/src/github.com/zimmski/go-mutesting/scripts/exec/test-mutated-package.sh" github.com/zimmski/go-mutesting/example
 ```
 
 The execution will print the following output.
@@ -137,7 +141,7 @@ The summary also shows the **mutation score** which is a metric on how many muta
 
 ### <a name="black-list-false-positives"></a>Blacklist false positives
 
-Mutation testing can generate many false positives since mutation algorithms do not fully understand the given source code. `early exits` are one common example. They can be implemented as optimizations and will almost always trigger a false-positive since the unoptimized code path will be used which will lead to the same result. go-mutesting is meant to be used as an addition to automatic test suites. It is therefore necessary to mark such mutations as false-positives. This is done with the `--blacklist` option. The option defines a file which contains in every line a MD5 checksum of a mutation. These checksums can then be used to ignore mutations.
+Mutation testing can generate many false positives since mutation algorithms do not fully understand the given source code. `early exits` are one common example. They can be implemented as optimizations and will almost always trigger a false-positive since the unoptimized code path will be used which will lead to the same result. go-mutesting is meant to be used as an addition to automatic test suites. It is therefore necessary to mark such mutations as false-positives. This is done with the `--blacklist` argument. The argument defines a file which contains in every line a MD5 checksum of a mutation. These checksums can then be used to ignore mutations.
 
 > **Note**: The blacklist feature is currently badly implemented as a change in the original source code will change all checksums.
 
@@ -150,8 +154,7 @@ The example output of the [How do I use go-mutesting?](#how-do-i-use-go-mutestin
 The blacklist file, which is named `example.blacklist` in this example, can then be used to invoke go-mutesting.
 
 ```bash
-cd $GOPATH/src/github.com/zimmski/go-mutesting/example
-go-mutesting --exec "$GOPATH/src/github.com/zimmski/go-mutesting/scripts/test-mutated-package.sh" --blacklist example.blacklist github.com/zimmski/go-mutesting/example
+go-mutesting --blacklist example.blacklist github.com/zimmski/go-mutesting/example
 ```
 
 The execution will print the following output.
@@ -214,7 +217,7 @@ A command must exit with an appropriate exit code.
 | 2         | The mutation was skipped, since there are other problems e.g. compilation errors.                             |
 | >2        | The mutation produced an unknown exit code which might be a flaw in the exec command.                         |
 
-Examples for exec commands can be found in the [scripts](/scripts) directory.
+Examples for exec commands can be found in the [scripts](/scripts/exec) directory.
 
 ## <a name="list-of-mutators"></a>Which mutators are implemented?
 
