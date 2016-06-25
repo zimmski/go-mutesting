@@ -32,7 +32,7 @@ func (w *countWalk) Visit(node ast.Node) ast.Visitor {
 		return w
 	}
 
-	w.count += len(w.mutator.Mutations(node))
+	w.count += len(w.mutator(node))
 
 	return w
 }
@@ -65,7 +65,7 @@ func (w *mutateWalk) Visit(node ast.Node) ast.Visitor {
 		return w
 	}
 
-	for _, m := range w.mutator.Mutations(node) {
+	for _, m := range w.mutator(node) {
 		m.Change()
 		w.changed <- true
 		<-w.changed

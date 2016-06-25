@@ -9,7 +9,7 @@ import (
 func TestMutatorElse(t *testing.T) {
 	test.Mutator(
 		t,
-		NewMutatorElse(),
+		MutatorElse,
 		"../../testdata/branch/mutateelse.go",
 		1,
 	)

@@ -77,7 +77,7 @@ type options struct {
 	} `group:"Test options"`
 
 	Remaining struct {
-		Targets []string `description:"Packages, directories and files even with patterns"`
+		Targets []string `description:"Packages, directories and files even with patterns (by default the current directory)`
 	} `positional-args:"true" required:"true"`
 }
 
@@ -347,7 +347,7 @@ func mutate(opts *options, mutators []mutator.Mutator, mutationBlackList map[str
 
 			changed <- true
 
-			// ignore original state
+			// Ignore original state
 			<-changed
 			changed <- true
 

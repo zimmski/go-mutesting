@@ -9,7 +9,7 @@ import (
 func TestMutatorCase(t *testing.T) {
 	test.Mutator(
 		t,
-		NewMutatorCase(),
+		MutatorCase,
 		"../../testdata/branch/mutatecase.go",
 		3,
 	)

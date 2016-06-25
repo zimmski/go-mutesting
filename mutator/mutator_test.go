@@ -7,20 +7,14 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type mockMutator struct{}
-
-func (m *mockMutator) Mutations(node ast.Node) []Mutation {
-	// do nothing
+func mockMutator(node ast.Node) []Mutation {
+	// Do nothing
 
 	return nil
 }
 
-func (m *mockMutator) String() string {
-	return "mock"
-}
-
 func TestMockMutator(t *testing.T) {
-	// mock is not registered
+	// Mock is not registered
 	for _, name := range List() {
 		if name == "mock" {
 			assert.Fail(t, "mock should not be in the mutator list yet")
@@ -31,12 +25,10 @@ func TestMockMutator(t *testing.T) {
 	assert.Nil(t, m)
 	assert.NotNil(t, err)
 
-	// register mock
-	Register("mock", func() Mutator {
-		return &mockMutator{}
-	})
+	// Register mock
+	Register("mock", mockMutator)
 
-	// mock is registered
+	// Mock is registered
 	found := false
 	for _, name := range List() {
 		if name == "mock" {
@@ -51,7 +43,7 @@ func TestMockMutator(t *testing.T) {
 	assert.NotNil(t, m)
 	assert.Nil(t, err)
 
-	// register mock a second time
+	// Register mock a second time
 	caught := false
 	func() {
 		defer func() {
@@ -60,13 +52,11 @@ func TestMockMutator(t *testing.T) {
 			}
 		}()
 
-		Register("mock", func() Mutator {
-			return &mockMutator{}
-		})
+		Register("mock", mockMutator)
 	}()
 	assert.True(t, caught)
 
-	// register nil function
+	// Register nil function
 	caught = false
 	func() {
 		defer func() {

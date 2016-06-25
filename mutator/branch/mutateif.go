@@ -8,26 +8,11 @@ import (
 )
 
 func init() {
-	mutator.Register(MutatorIf{}.String(), func() mutator.Mutator {
-		return NewMutatorIf()
-	})
+	mutator.Register("branch/if", MutatorIf)
 }
 
-// NewMutatorIf returns a new instance of a MutatorIf mutator
-func NewMutatorIf() *MutatorIf {
-	return &MutatorIf{}
-}
-
-// MutatorIf implements a mutator for if and else if branches
-type MutatorIf struct{}
-
-// String implements the String method of the Stringer interface
-func (m MutatorIf) String() string {
-	return "branch/if"
-}
-
-// Mutations returns a list of possible mutations for the given node.
-func (m *MutatorIf) Mutations(node ast.Node) []mutator.Mutation {
+// MutatorIf implements a mutator for if and else if branches.
+func MutatorIf(node ast.Node) []mutator.Mutation {
 	n, ok := node.(*ast.IfStmt)
 	if !ok {
 		return nil
