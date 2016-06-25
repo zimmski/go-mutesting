@@ -138,6 +138,11 @@ func exitError(format string, args ...interface{}) int {
 	return returnError
 }
 
+type mutatorItem struct {
+	Name    string
+	Mutator mutator.Mutator
+}
+
 type mutationStats struct {
 	passed  int
 	failed  int
@@ -201,7 +206,7 @@ func mainCmd(args []string) int {
 		}
 	}
 
-	var mutators []mutator.Mutator
+	var mutators []mutatorItem
 
 MUTATOR:
 	for _, name := range mutator.List() {
@@ -218,7 +223,10 @@ MUTATOR:
 		debug(opts, "Enable mutator %q", name)
 
 		m, _ := mutator.New(name)
-		mutators = append(mutators, m)
+		mutators = append(mutators, mutatorItem{
+			Name:    name,
+			Mutator: m,
+		})
 	}
 
 	tmpDir, err := ioutil.TempDir("", "go-mutesting-")
@@ -291,16 +299,16 @@ MUTATOR:
 	return returnOk
 }
 
-func mutate(opts *options, mutators []mutator.Mutator, mutationBlackList map[string]struct{}, mutationID int, file string, fset *token.FileSet, src ast.Node, node ast.Node, tmpFile string, execs []string, stats *mutationStats) int {
+func mutate(opts *options, mutators []mutatorItem, mutationBlackList map[string]struct{}, mutationID int, file string, fset *token.FileSet, src ast.Node, node ast.Node, tmpFile string, execs []string, stats *mutationStats) int {
 	pkg, err := build.ImportDir(filepath.Dir(file), build.FindOnly)
 	if err != nil {
 		panic(err)
 	}
 
 	for _, m := range mutators {
-		debug(opts, "Mutator %s", m)
+		debug(opts, "Mutator %s", m.Name)
 
-		changed := mutesting.MutateWalk(node, m)
+		changed := mutesting.MutateWalk(node, m.Mutator)
 
 		for {
 			_, ok := <-changed
@@ -320,7 +328,7 @@ func mutate(opts *options, mutators []mutator.Mutator, mutationBlackList map[str
 				debug(opts, "Save mutation into %q with checksum %s", mutationFile, checksum)
 
 				if !opts.Exec.NoExec {
-					execExitCode := mutateExec(opts, mutators, pkg, file, src, mutationFile, execs)
+					execExitCode := mutateExec(opts, pkg, file, src, mutationFile, execs)
 
 					debug(opts, "Exited with %d", execExitCode)
 
@@ -358,7 +366,7 @@ func mutate(opts *options, mutators []mutator.Mutator, mutationBlackList map[str
 	return mutationID
 }
 
-func mutateExec(opts *options, mutators []mutator.Mutator, pkg *build.Package, file string, src ast.Node, mutationFile string, execs []string) (execExitCode int) {
+func mutateExec(opts *options, pkg *build.Package, file string, src ast.Node, mutationFile string, execs []string) (execExitCode int) {
 	if len(execs) == 0 {
 		debug(opts, "Execute built-in exec command for mutation")
 
