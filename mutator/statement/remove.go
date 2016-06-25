@@ -9,25 +9,10 @@ import (
 )
 
 func init() {
-	mutator.Register(MutatorRemoveStatement{}.String(), func() mutator.Mutator {
-		return NewMutatorRemoveStatement()
-	})
+	mutator.Register("statement/remove", MutatorRemoveStatement)
 }
 
-// MutatorRemoveStatement implements a mutator to remove statements
-type MutatorRemoveStatement struct{}
-
-// NewMutatorRemoveStatement returns a new instance of a MutatorRemoveStatement mutator
-func NewMutatorRemoveStatement() *MutatorRemoveStatement {
-	return &MutatorRemoveStatement{}
-}
-
-// String implements the String method of the Stringer interface
-func (m MutatorRemoveStatement) String() string {
-	return "statement/remove"
-}
-
-func (m *MutatorRemoveStatement) checkStatement(node ast.Stmt) bool {
+func checkRemoveStatement(node ast.Stmt) bool {
 	switch n := node.(type) {
 	case *ast.AssignStmt:
 		if n.Tok != token.DEFINE {
@@ -40,8 +25,8 @@ func (m *MutatorRemoveStatement) checkStatement(node ast.Stmt) bool {
 	return false
 }
 
-// Mutations returns a list of possible mutations for the given node.
-func (m *MutatorRemoveStatement) Mutations(node ast.Node) []mutator.Mutation {
+// MutatorRemoveStatement implements a mutator to remove statements.
+func MutatorRemoveStatement(node ast.Node) []mutator.Mutation {
 	var l []ast.Stmt
 
 	switch n := node.(type) {
@@ -54,7 +39,7 @@ func (m *MutatorRemoveStatement) Mutations(node ast.Node) []mutator.Mutation {
 	var mutations []mutator.Mutation
 
 	for i, ni := range l {
-		if m.checkStatement(ni) {
+		if checkRemoveStatement(ni) {
 			li := i
 			old := l[li]
 

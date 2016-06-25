@@ -9,7 +9,7 @@ import (
 func TestMutatorRemoveStatement(t *testing.T) {
 	test.Mutator(
 		t,
-		NewMutatorRemoveStatement(),
+		MutatorRemoveStatement,
 		"../../testdata/statement/remove.go",
 		15,
 	)

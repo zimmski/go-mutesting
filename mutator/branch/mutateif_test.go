@@ -9,7 +9,7 @@ import (
 func TestMutatorIf(t *testing.T) {
 	test.Mutator(
 		t,
-		NewMutatorIf(),
+		MutatorIf,
 		"../../testdata/branch/mutateif.go",
 		2,
 	)

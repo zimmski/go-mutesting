@@ -8,26 +8,11 @@ import (
 )
 
 func init() {
-	mutator.Register(MutatorRemoveTerm{}.String(), func() mutator.Mutator {
-		return NewMutatorRemoveTerm()
-	})
+	mutator.Register("expression/remove", MutatorRemoveTerm)
 }
 
-// MutatorRemoveTerm implements a mutator to remove expression terms
-type MutatorRemoveTerm struct{}
-
-// NewMutatorRemoveTerm returns a new instance of a MutatorRemoveTerm mutator
-func NewMutatorRemoveTerm() *MutatorRemoveTerm {
-	return &MutatorRemoveTerm{}
-}
-
-// String implements the String method of the Stringer interface
-func (m MutatorRemoveTerm) String() string {
-	return "expression/remove"
-}
-
-// Mutations returns a list of possible mutations for the given node.
-func (m *MutatorRemoveTerm) Mutations(node ast.Node) []mutator.Mutation {
+// MutatorRemoveTerm implements a mutator to remove expression terms.
+func MutatorRemoveTerm(node ast.Node) []mutator.Mutation {
 	n, ok := node.(*ast.BinaryExpr)
 	if !ok {
 		return nil

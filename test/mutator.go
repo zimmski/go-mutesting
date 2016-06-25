@@ -19,11 +19,6 @@ func Mutator(t *testing.T, m mutator.Mutator, testFile string, count int) {
 	// test if mutator is not nil
 	assert.NotNil(t, m)
 
-	// test if the mutator is properly registered
-	mn, err := mutator.New(m.String())
-	assert.Nil(t, err)
-	assert.NotNil(t, mn)
-
 	// read and parse the original source code
 	originalFile, err := ioutil.ReadFile(testFile)
 	assert.Nil(t, err)
@@ -32,7 +27,7 @@ func Mutator(t *testing.T, m mutator.Mutator, testFile string, count int) {
 	assert.Nil(t, err)
 
 	// mutate a non relevant node
-	assert.Nil(t, m.Mutations(f))
+	assert.Nil(t, m(f))
 
 	// count the actual mutations
 	n := mutesting.CountWalk(f, m)

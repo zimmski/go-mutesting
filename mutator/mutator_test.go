@@ -7,16 +7,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type mockMutator struct{}
-
-func (m *mockMutator) Mutations(node ast.Node) []Mutation {
+func mockMutator(node ast.Node) []Mutation {
 	// do nothing
 
 	return nil
-}
-
-func (m *mockMutator) String() string {
-	return "mock"
 }
 
 func TestMockMutator(t *testing.T) {
@@ -32,9 +26,7 @@ func TestMockMutator(t *testing.T) {
 	assert.NotNil(t, err)
 
 	// register mock
-	Register("mock", func() Mutator {
-		return &mockMutator{}
-	})
+	Register("mock", mockMutator)
 
 	// mock is registered
 	found := false
@@ -60,9 +52,7 @@ func TestMockMutator(t *testing.T) {
 			}
 		}()
 
-		Register("mock", func() Mutator {
-			return &mockMutator{}
-		})
+		Register("mock", mockMutator)
 	}()
 	assert.True(t, caught)
 
