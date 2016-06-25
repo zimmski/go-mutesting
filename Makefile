@@ -43,8 +43,8 @@ install-tools:
 lint:
 	$(ROOT_DIR)/scripts/lint.sh
 test:
-	go test -race -test.timeout 60s $(PKG_TEST)
+	go test -race -test.timeout 120s $(PKG_TEST)
 test-verbose:
-	go test -race -test.timeout 60s -v $(PKG_TEST)
+	go test -race -test.timeout 120s -v $(PKG_TEST)
 test-with-coverage:
 	ginkgo -r -cover -race -skipPackage="testdata"
