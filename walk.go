@@ -10,7 +10,7 @@ import (
 
 // CountWalk returns the number of corresponding mutations for a given mutator.
 // It traverses the AST of the given node and calls the method Check of the given mutator for every node and sums up the returned counts. After completion of the traversal the final counter is returned.
-func CountWalk(node ast.Node, m mutator.Mutator) uint {
+func CountWalk(node ast.Node, m mutator.Mutator) int {
 	w := &countWalk{
 		count:   0,
 		mutator: m,
@@ -22,7 +22,7 @@ func CountWalk(node ast.Node, m mutator.Mutator) uint {
 }
 
 type countWalk struct {
-	count   uint
+	count   int
 	mutator mutator.Mutator
 }
 
@@ -32,9 +32,7 @@ func (w *countWalk) Visit(node ast.Node) ast.Visitor {
 		return w
 	}
 
-	if n := w.mutator.Check(node); n > 0 {
-		w.count += n
-	}
+	w.count += len(w.mutator.Mutations(node))
 
 	return w
 }
@@ -67,8 +65,14 @@ func (w *mutateWalk) Visit(node ast.Node) ast.Visitor {
 		return w
 	}
 
-	if w.mutator.Check(node) > 0 {
-		w.mutator.Mutate(node, w.changed)
+	for _, m := range w.mutator.Mutations(node) {
+		m.Change()
+		w.changed <- true
+		<-w.changed
+
+		m.Reset()
+		w.changed <- true
+		<-w.changed
 	}
 
 	return w

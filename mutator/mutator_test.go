@@ -9,21 +9,17 @@ import (
 
 type mockMutator struct{}
 
-func (m *mockMutator) Check(node ast.Node) uint {
+func (m *mockMutator) Mutations(node ast.Node) []Mutation {
 	// do nothing
 
-	return 0
-}
-
-func (m *mockMutator) Mutate(node ast.Node, changed chan bool) {
-	// do nothing
+	return nil
 }
 
 func (m *mockMutator) String() string {
 	return "mock"
 }
 
-func TestMutator(t *testing.T) {
+func TestMockMutator(t *testing.T) {
 	// mock is not registered
 	for _, name := range List() {
 		if name == "mock" {
