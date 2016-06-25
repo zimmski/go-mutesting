@@ -20,7 +20,9 @@ type identifierWalker struct {
 func (w *identifierWalker) Visit(node ast.Node) ast.Visitor {
 	switch n := node.(type) {
 	case *ast.Ident:
-		w.identifiers = append(w.identifiers, n)
+		if n.Name != "nil" {
+			w.identifiers = append(w.identifiers, n)
+		}
 
 		return nil
 	case *ast.SelectorExpr:
