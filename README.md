@@ -198,15 +198,15 @@ It is important to note that each invocation should be isolated and therefore st
 
 A set of environment variables, which define exactly one mutation, is passed on to the command.
 
-| Name            | Description                                                    |
-| :-------------- | :------------------------------------------------------------- |
-| MUTATE_CHANGED  | Defines the filename to the mutation of the original file.     |
-| MUTATE_DEBUG    | Defines if debugging output should be printed.                 |
-| MUTATE_ORIGINAL | Defines the filename to the original file which was mutated.   |
-| MUTATE_PACKAGE  | Defines the import path of the origianl file.                  |
+| Name            | Description                                                               |
+| :-------------- | :------------------------------------------------------------------------ |
+| MUTATE_CHANGED  | Defines the filename to the mutation of the original file.                |
+| MUTATE_DEBUG    | Defines if debugging output should be printed.                            |
+| MUTATE_ORIGINAL | Defines the filename to the original file which was mutated.              |
+| MUTATE_PACKAGE  | Defines the import path of the origianl file.                             |
 | MUTATE_TIMEOUT  | Defines a timeout which should be taken into account by the exec command. |
-| MUTATE_VERBOSE  | Defines if verbose output should be printed.                   |
-| TEST_RECURSIVE  | Defines if tests should be run recursively.                    |
+| MUTATE_VERBOSE  | Defines if verbose output should be printed.                              |
+| TEST_RECURSIVE  | Defines if tests should be run recursively.                               |
 
 A command must exit with an appropriate exit code.
 
@@ -223,11 +223,11 @@ Examples for exec commands can be found in the [scripts](/scripts/exec) director
 
 ### Branch mutators
 
-| Name          | Description                                    |
-| :------------ | :--------------------------------------------- |
-| branch/case   | Empties case bodies.                           |
+| Name          | Description                                        |
+| :------------ | :------------------------------------------------- |
+| branch/case   | Empties case bodies.                               |
 | branch/if     | Empties branches of `if` and `else if` statements. |
-| branch/else   | Empties branches of `else` statements.           |
+| branch/else   | Empties branches of `else` statements.             |
 
 ### Expression mutators
 
