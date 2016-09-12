@@ -35,7 +35,7 @@ func foo() int {
 
 	switch {
 	case n < 20:
-		_ = n
+		n++
 	case n > 20:
 		n--
 	default:
@@ -65,8 +65,7 @@ func statementRemoveStructInitialization() (a http.Header, b error) {
 func statementRemoveStringArrayMap() map[string][]string {
 	hash := "ok"
 	var hdr = make(map[string][]string)
-
-	hdr["Hash"] = []string{hash}
+	_, _ = hdr, hash
 
 	return hdr
 }
