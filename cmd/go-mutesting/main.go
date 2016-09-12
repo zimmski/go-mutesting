@@ -144,9 +144,10 @@ type mutatorItem struct {
 }
 
 type mutationStats struct {
-	passed  int
-	failed  int
-	skipped int
+	passed     int
+	failed     int
+	duplicated int
+	skipped    int
 }
 
 func mainCmd(args []string) int {
@@ -291,7 +292,7 @@ MUTATOR:
 	}
 
 	if !opts.Exec.NoExec {
-		fmt.Printf("The mutation score is %f (%d passed, %d failed, %d skipped, total is %d)\n", float64(stats.passed)/float64(stats.passed+stats.failed), stats.passed, stats.failed, stats.skipped, stats.passed+stats.failed+stats.skipped)
+		fmt.Printf("The mutation score is %f (%d passed, %d failed, %d duplicated, %d skipped, total is %d)\n", float64(stats.passed)/float64(stats.passed+stats.failed), stats.passed, stats.failed, stats.duplicated, stats.skipped, stats.passed+stats.failed+stats.duplicated+stats.skipped)
 	} else {
 		fmt.Println("Cannot do a mutation testing summary since no exec command was executed.")
 	}
@@ -329,6 +330,8 @@ func mutate(opts *options, mutators []mutatorItem, mutationBlackList map[string]
 			}
 			if duplicate {
 				debug(opts, "%q is a duplicate, we ignore it", mutationFile)
+
+				stats.duplicated++
 			} else {
 				debug(opts, "Save mutation into %q with checksum %s", mutationFile, checksum)
 
