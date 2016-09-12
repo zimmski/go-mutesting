@@ -3,7 +3,10 @@ package test
 import (
 	"bytes"
 	"fmt"
+	"go/ast"
+	"go/importer"
 	"go/printer"
+	"go/types"
 	"io/ioutil"
 	"testing"
 
@@ -26,15 +29,26 @@ func Mutator(t *testing.T, m mutator.Mutator, testFile string, count int) {
 	f, fset, err := mutesting.ParseSource(originalFile)
 	assert.Nil(t, err)
 
+	conf := types.Config{
+		Importer: importer.Default(),
+	}
+
+	info := &types.Info{
+		Uses: make(map[*ast.Ident]types.Object),
+	}
+
+	pkg, err := conf.Check(".", fset, []*ast.File{f}, info)
+	assert.Nil(t, err)
+
 	// Mutate a non relevant node
-	assert.Nil(t, m(f))
+	assert.Nil(t, m(pkg, info, f))
 
 	// Count the actual mutations
-	n := mutesting.CountWalk(f, m)
+	n := mutesting.CountWalk(pkg, info, f, m)
 	assert.Equal(t, count, n)
 
 	// Mutate all relevant nodes -> test whole mutation process
-	changed := mutesting.MutateWalk(f, m)
+	changed := mutesting.MutateWalk(pkg, info, f, m)
 
 	for i := 0; i < count; i++ {
 		assert.True(t, <-changed)

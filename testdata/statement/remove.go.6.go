@@ -2,7 +2,10 @@
 
 package example
 
-import "fmt"
+import (
+	"fmt"
+	"net/http"
+)
 
 func foo() int {
 	n := 1
@@ -49,4 +52,21 @@ func foo() int {
 
 func bar() int {
 	return 4
+}
+
+func statementRemoveStructInitialization() (a http.Header, b error) {
+	var err error
+
+	a, b = http.Header{}, err
+
+	return
+}
+
+func statementRemoveStringArrayMap() map[string][]string {
+	hash := "ok"
+	var hdr = make(map[string][]string)
+
+	hdr["Hash"] = []string{hash}
+
+	return hdr
 }

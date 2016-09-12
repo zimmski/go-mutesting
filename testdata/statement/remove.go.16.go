@@ -27,7 +27,8 @@ func foo() int {
 	}
 
 	n++
-	_ = n
+
+	n += bar()
 
 	bar()
 	bar()
@@ -64,8 +65,7 @@ func statementRemoveStructInitialization() (a http.Header, b error) {
 func statementRemoveStringArrayMap() map[string][]string {
 	hash := "ok"
 	var hdr = make(map[string][]string)
-
-	hdr["Hash"] = []string{hash}
+	_, _ = hdr, hash
 
 	return hdr
 }

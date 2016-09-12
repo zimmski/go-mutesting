@@ -3,11 +3,12 @@ package mutator
 import (
 	"fmt"
 	"go/ast"
+	"go/types"
 	"sort"
 )
 
 // Mutator defines a mutator for mutation testing by returning a list of possible mutations for the given node.
-type Mutator func(node ast.Node) []Mutation
+type Mutator func(pkg *types.Package, info *types.Info, node ast.Node) []Mutation
 
 var mutatorLookup = make(map[string]Mutator)
 

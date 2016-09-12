@@ -3,6 +3,7 @@ package statement
 import (
 	"go/ast"
 	"go/token"
+	"go/types"
 
 	"github.com/zimmski/go-mutesting/astutil"
 	"github.com/zimmski/go-mutesting/mutator"
@@ -26,7 +27,7 @@ func checkRemoveStatement(node ast.Stmt) bool {
 }
 
 // MutatorRemoveStatement implements a mutator to remove statements.
-func MutatorRemoveStatement(node ast.Node) []mutator.Mutation {
+func MutatorRemoveStatement(pkg *types.Package, info *types.Info, node ast.Node) []mutator.Mutation {
 	var l []ast.Stmt
 
 	switch n := node.(type) {
@@ -45,7 +46,7 @@ func MutatorRemoveStatement(node ast.Node) []mutator.Mutation {
 
 			mutations = append(mutations, mutator.Mutation{
 				Change: func() {
-					l[li] = astutil.CreateNoopOfStatement(old)
+					l[li] = astutil.CreateNoopOfStatement(pkg, info, old)
 				},
 				Reset: func() {
 					l[li] = old

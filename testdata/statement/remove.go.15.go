@@ -27,7 +27,8 @@ func foo() int {
 	}
 
 	n++
-	_ = n
+
+	n += bar()
 
 	bar()
 	bar()
@@ -55,8 +56,7 @@ func bar() int {
 
 func statementRemoveStructInitialization() (a http.Header, b error) {
 	var err error
-
-	a, b = http.Header{}, err
+	_, _, _, _ = a, b, http.Header{}, err
 
 	return
 }

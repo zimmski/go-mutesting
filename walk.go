@@ -3,6 +3,7 @@ package mutesting
 import (
 	"fmt"
 	"go/ast"
+	"go/types"
 	"strings"
 
 	"github.com/zimmski/go-mutesting/mutator"
@@ -10,10 +11,12 @@ import (
 
 // CountWalk returns the number of corresponding mutations for a given mutator.
 // It traverses the AST of the given node and calls the method Check of the given mutator for every node and sums up the returned counts. After completion of the traversal the final counter is returned.
-func CountWalk(node ast.Node, m mutator.Mutator) int {
+func CountWalk(pkg *types.Package, info *types.Info, node ast.Node, m mutator.Mutator) int {
 	w := &countWalk{
 		count:   0,
 		mutator: m,
+		pkg:     pkg,
+		info:    info,
 	}
 
 	ast.Walk(w, node)
@@ -24,6 +27,8 @@ func CountWalk(node ast.Node, m mutator.Mutator) int {
 type countWalk struct {
 	count   int
 	mutator mutator.Mutator
+	pkg     *types.Package
+	info    *types.Info
 }
 
 // Visit implements the Visit method of the ast.Visitor interface
@@ -32,17 +37,19 @@ func (w *countWalk) Visit(node ast.Node) ast.Visitor {
 		return w
 	}
 
-	w.count += len(w.mutator(node))
+	w.count += len(w.mutator(w.pkg, w.info, node))
 
 	return w
 }
 
 // MutateWalk mutates the given node with the given mutator returning a channel to control the mutation steps.
 // It traverses the AST of the given node and calls the method Check of the given mutator to verify that a node can be mutated by the mutator. If a node can be mutated the method Mutate of the given mutator is executed with the node and the control channel. After completion of the traversal the control channel is closed.
-func MutateWalk(node ast.Node, m mutator.Mutator) chan bool {
+func MutateWalk(pkg *types.Package, info *types.Info, node ast.Node, m mutator.Mutator) chan bool {
 	w := &mutateWalk{
 		changed: make(chan bool),
 		mutator: m,
+		pkg:     pkg,
+		info:    info,
 	}
 
 	go func() {
@@ -57,6 +64,8 @@ func MutateWalk(node ast.Node, m mutator.Mutator) chan bool {
 type mutateWalk struct {
 	changed chan bool
 	mutator mutator.Mutator
+	pkg     *types.Package
+	info    *types.Info
 }
 
 // Visit implements the Visit method of the ast.Visitor interface
@@ -65,7 +74,7 @@ func (w *mutateWalk) Visit(node ast.Node) ast.Visitor {
 		return w
 	}
 
-	for _, m := range w.mutator(node) {
+	for _, m := range w.mutator(w.pkg, w.info, node) {
 		m.Change()
 		w.changed <- true
 		<-w.changed
