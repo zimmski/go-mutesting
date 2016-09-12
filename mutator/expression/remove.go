@@ -3,6 +3,7 @@ package expression
 import (
 	"go/ast"
 	"go/token"
+	"go/types"
 
 	"github.com/zimmski/go-mutesting/mutator"
 )
@@ -12,7 +13,7 @@ func init() {
 }
 
 // MutatorRemoveTerm implements a mutator to remove expression terms.
-func MutatorRemoveTerm(node ast.Node) []mutator.Mutation {
+func MutatorRemoveTerm(pkg *types.Package, info *types.Info, node ast.Node) []mutator.Mutation {
 	n, ok := node.(*ast.BinaryExpr)
 	if !ok {
 		return nil

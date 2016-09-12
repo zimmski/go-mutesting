@@ -29,7 +29,7 @@ func foo() int {
 	n++
 
 	n += bar()
-	_ = bar
+
 	bar()
 
 	switch {

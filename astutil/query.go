@@ -3,11 +3,15 @@ package astutil
 import (
 	"go/ast"
 	"go/token"
+	"go/types"
 )
 
 // IdentifiersInStatement returns all identifiers with their found in a statement.
-func IdentifiersInStatement(stmt ast.Stmt) []ast.Expr {
-	w := &identifierWalker{}
+func IdentifiersInStatement(pkg *types.Package, info *types.Info, stmt ast.Stmt) []ast.Expr {
+	w := &identifierWalker{
+		pkg:  pkg,
+		info: info,
+	}
 
 	ast.Walk(w, stmt)
 
@@ -16,49 +20,8 @@ func IdentifiersInStatement(stmt ast.Stmt) []ast.Expr {
 
 type identifierWalker struct {
 	identifiers []ast.Expr
-}
-
-var blacklistedIdentifiers = map[string]bool{
-	// Built-ins
-	"append":     true,
-	"bool":       true,
-	"byte":       true,
-	"cap":        true,
-	"close":      true,
-	"complex":    true,
-	"complex128": true,
-	"complex64":  true,
-	"copy":       true,
-	"delete":     true,
-	"error":      true,
-	"false":      true,
-	"float32":    true,
-	"float64":    true,
-	"imag":       true,
-	"int":        true,
-	"int16":      true,
-	"int32":      true,
-	"int64":      true,
-	"int8":       true,
-	"iota":       true,
-	"len":        true,
-	"make":       true,
-	"new":        true,
-	"nil":        true,
-	"panic":      true,
-	"print":      true,
-	"println":    true,
-	"real":       true,
-	"recover":    true,
-	"rune":       true,
-	"string":     true,
-	"true":       true,
-	"uint":       true,
-	"uint16":     true,
-	"uint32":     true,
-	"uint64":     true,
-	"uint8":      true,
-	"uintptr":    true,
+	pkg         *types.Package
+	info        *types.Info
 }
 
 func checkForSelectorExpr(node ast.Expr) bool {
@@ -85,16 +48,39 @@ func (w *identifierWalker) Visit(node ast.Node) ast.Visitor {
 			return nil
 		}
 
-		// Ignore our blacklist identifiers
-		if _, ok := blacklistedIdentifiers[n.Name]; ok {
-			return nil
+		// We are only interested in variables
+		if obj, ok := w.info.Uses[n]; ok {
+			if _, ok := obj.(*types.Var); !ok {
+				return nil
+			}
 		}
 
 		w.identifiers = append(w.identifiers, n)
 
 		return nil
 	case *ast.SelectorExpr:
-		if checkForSelectorExpr(n) {
+		if !checkForSelectorExpr(n) {
+			return nil
+		}
+
+		// Check if we need to instantiate the expression
+		initialize := false
+		if n.Sel != nil {
+			if obj, ok := w.info.Uses[n.Sel]; ok {
+				t := obj.Type()
+
+				switch t.Underlying().(type) {
+				case *types.Array, *types.Map, *types.Slice, *types.Struct:
+					initialize = true
+				}
+			}
+		}
+
+		if initialize {
+			w.identifiers = append(w.identifiers, &ast.CompositeLit{
+				Type: n,
+			})
+		} else {
 			w.identifiers = append(w.identifiers, n)
 		}
 

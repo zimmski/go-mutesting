@@ -7,8 +7,10 @@ import (
 	"go/ast"
 	"go/build"
 	"go/format"
+	"go/importer"
 	"go/printer"
 	"go/token"
+	"go/types"
 	"io"
 	"io/ioutil"
 	"os"
@@ -251,6 +253,29 @@ MUTATOR:
 			return exitError("Could not open file %q: %v", file, err)
 		}
 
+		dir, err := filepath.Abs(filepath.Dir(file))
+		if err != nil {
+			return exitError("Could not absolute the file path of %q: %v", file, err)
+		}
+
+		buildPkg, err := build.ImportDir(dir, build.FindOnly)
+		if err != nil {
+			return exitError("Could create build package of %q: %v", file, err)
+		}
+
+		conf := types.Config{
+			Importer: importer.Default(),
+		}
+
+		info := &types.Info{
+			Uses: make(map[*ast.Ident]types.Object),
+		}
+
+		pkg, err := conf.Check(buildPkg.ImportPath, fset, []*ast.File{src}, info) // TODO query the import path without the additional go/build.ImportDirt step
+		if err != nil {
+			return exitError("Could not type check file %q: %v", file, err)
+		}
+
 		err = os.MkdirAll(tmpDir+"/"+filepath.Dir(file), 0755)
 		if err != nil {
 			panic(err)
@@ -275,11 +300,11 @@ MUTATOR:
 
 			for _, f := range astutil.Functions(src) {
 				if m.MatchString(f.Name.Name) {
-					mutationID = mutate(opts, mutators, mutationBlackList, mutationID, file, fset, src, f, tmpFile, execs, stats)
+					mutationID = mutate(opts, mutators, mutationBlackList, mutationID, pkg, info, file, fset, src, f, tmpFile, execs, stats)
 				}
 			}
 		} else {
-			mutationID = mutate(opts, mutators, mutationBlackList, mutationID, file, fset, src, src, tmpFile, execs, stats)
+			mutationID = mutate(opts, mutators, mutationBlackList, mutationID, pkg, info, file, fset, src, src, tmpFile, execs, stats)
 		}
 	}
 
@@ -300,21 +325,11 @@ MUTATOR:
 	return returnOk
 }
 
-func mutate(opts *options, mutators []mutatorItem, mutationBlackList map[string]struct{}, mutationID int, file string, fset *token.FileSet, src ast.Node, node ast.Node, tmpFile string, execs []string, stats *mutationStats) int {
-	dir, err := filepath.Abs(filepath.Dir(file))
-	if err != nil {
-		panic(err)
-	}
-
-	pkg, err := build.ImportDir(dir, build.FindOnly)
-	if err != nil {
-		panic(err)
-	}
-
+func mutate(opts *options, mutators []mutatorItem, mutationBlackList map[string]struct{}, mutationID int, pkg *types.Package, info *types.Info, file string, fset *token.FileSet, src ast.Node, node ast.Node, tmpFile string, execs []string, stats *mutationStats) int {
 	for _, m := range mutators {
 		debug(opts, "Mutator %s", m.Name)
 
-		changed := mutesting.MutateWalk(node, m.Mutator)
+		changed := mutesting.MutateWalk(pkg, info, node, m.Mutator)
 
 		for {
 			_, ok := <-changed
@@ -374,7 +389,7 @@ func mutate(opts *options, mutators []mutatorItem, mutationBlackList map[string]
 	return mutationID
 }
 
-func mutateExec(opts *options, pkg *build.Package, file string, src ast.Node, mutationFile string, execs []string) (execExitCode int) {
+func mutateExec(opts *options, pkg *types.Package, file string, src ast.Node, mutationFile string, execs []string) (execExitCode int) {
 	if len(execs) == 0 {
 		debug(opts, "Execute built-in exec command for mutation")
 
@@ -405,7 +420,7 @@ func mutateExec(opts *options, pkg *build.Package, file string, src ast.Node, mu
 			panic(err)
 		}
 
-		pkgName := pkg.ImportPath
+		pkgName := pkg.Path()
 		if opts.Test.Recursive {
 			pkgName += "/..."
 		}
@@ -461,7 +476,7 @@ func mutateExec(opts *options, pkg *build.Package, file string, src ast.Node, mu
 		"MUTATE_CHANGED=" + mutationFile,
 		fmt.Sprintf("MUTATE_DEBUG=%t", opts.General.Debug),
 		"MUTATE_ORIGINAL=" + file,
-		"MUTATE_PACKAGE=" + pkg.ImportPath,
+		"MUTATE_PACKAGE=" + pkg.Path(),
 		fmt.Sprintf("MUTATE_TIMEOUT=%d", opts.Exec.Timeout),
 		fmt.Sprintf("MUTATE_VERBOSE=%t", opts.General.Verbose),
 	}...)

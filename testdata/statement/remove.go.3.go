@@ -31,7 +31,6 @@ func foo() int {
 	n += bar()
 
 	bar()
-	_ = bar
 
 	switch {
 	case n < 20:
