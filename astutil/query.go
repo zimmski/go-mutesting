@@ -2,6 +2,7 @@ package astutil
 
 import (
 	"go/ast"
+	"go/token"
 )
 
 // IdentifiersInStatement returns all identifiers with their found in a statement.
@@ -18,75 +19,46 @@ type identifierWalker struct {
 }
 
 var blacklistedIdentifiers = map[string]bool{
-	// blank identifier
-	"_": true,
-	// builtin - can be used as identifier but are unlikely to be in practice
-	// (except perhaps with panic, defer, recover, print, prinln?)
+	// Built-ins
+	"append":     true,
 	"bool":       true,
-	"true":       true,
+	"byte":       true,
+	"cap":        true,
+	"close":      true,
+	"complex":    true,
+	"complex128": true,
+	"complex64":  true,
+	"copy":       true,
+	"delete":     true,
+	"error":      true,
 	"false":      true,
-	"uint8":      true,
-	"uint16":     true,
-	"uint32":     true,
-	"uint64":     true,
-	"int8":       true,
+	"float32":    true,
+	"float64":    true,
+	"imag":       true,
+	"int":        true,
 	"int16":      true,
 	"int32":      true,
 	"int64":      true,
-	"float32":    true,
-	"float64":    true,
-	"complex64":  true,
-	"complex128": true,
-	"string":     true,
-	"int":        true,
-	"uint":       true,
-	"uintptr":    true,
-	"byte":       true,
-	"rune":       true,
+	"int8":       true,
 	"iota":       true,
-	"nil":        true,
-	"append":     true,
-	"copy":       true,
-	"delete":     true,
 	"len":        true,
-	"cap":        true,
 	"make":       true,
 	"new":        true,
-	"complex":    true,
-	"real":       true,
-	"imag":       true,
-	"close":      true,
+	"nil":        true,
 	"panic":      true,
-	"recover":    true,
 	"print":      true,
 	"println":    true,
-	"error":      true,
-	// reserved keywords - cannot be used as identifier.
-	"break":       true,
-	"default":     true,
-	"func":        true,
-	"interface":   true,
-	"select":      true,
-	"case":        true,
-	"defer":       true,
-	"go":          true,
-	"map":         true,
-	"struct":      true,
-	"chan":        true,
-	"else":        true,
-	"goto":        true,
-	"package":     true,
-	"switch":      true,
-	"const":       true,
-	"fallthrough": true,
-	"if":          true,
-	"range":       true,
-	"type":        true,
-	"continue":    true,
-	"for":         true,
-	"import":      true,
-	"return":      true,
-	"var":         true,
+	"real":       true,
+	"recover":    true,
+	"rune":       true,
+	"string":     true,
+	"true":       true,
+	"uint":       true,
+	"uint16":     true,
+	"uint32":     true,
+	"uint64":     true,
+	"uint8":      true,
+	"uintptr":    true,
 }
 
 func checkForSelectorExpr(node ast.Expr) bool {
@@ -103,9 +75,22 @@ func checkForSelectorExpr(node ast.Expr) bool {
 func (w *identifierWalker) Visit(node ast.Node) ast.Visitor {
 	switch n := node.(type) {
 	case *ast.Ident:
-		if _, ok := blacklistedIdentifiers[n.Name]; !ok {
-			w.identifiers = append(w.identifiers, n)
+		// Ignore the blank identifier
+		if n.Name == "_" {
+			return nil
 		}
+
+		// Ignore keywords
+		if token.Lookup(n.Name) != token.IDENT {
+			return nil
+		}
+
+		// Ignore our blacklist identifiers
+		if _, ok := blacklistedIdentifiers[n.Name]; ok {
+			return nil
+		}
+
+		w.identifiers = append(w.identifiers, n)
 
 		return nil
 	case *ast.SelectorExpr:
