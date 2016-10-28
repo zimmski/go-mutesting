@@ -152,6 +152,20 @@ type mutationStats struct {
 	skipped    int
 }
 
+func (ms *mutationStats) Score() float64 {
+	total := ms.Total()
+
+	if total == 0 {
+		return 0.0
+	}
+
+	return float64(ms.passed) / float64(total)
+}
+
+func (ms *mutationStats) Total() int {
+	return ms.passed + ms.failed + ms.skipped
+}
+
 func mainCmd(args []string) int {
 	var opts = &options{}
 	var mutationBlackList = map[string]struct{}{}
@@ -317,7 +331,7 @@ MUTATOR:
 	}
 
 	if !opts.Exec.NoExec {
-		fmt.Printf("The mutation score is %f (%d passed, %d failed, %d duplicated, %d skipped, total is %d)\n", float64(stats.passed)/float64(stats.passed+stats.failed), stats.passed, stats.failed, stats.duplicated, stats.skipped, stats.passed+stats.failed+stats.duplicated+stats.skipped)
+		fmt.Printf("The mutation score is %f (%d passed, %d failed, %d duplicated, %d skipped, total is %d)\n", stats.Score(), stats.passed, stats.failed, stats.duplicated, stats.skipped, stats.Total())
 	} else {
 		fmt.Println("Cannot do a mutation testing summary since no exec command was executed.")
 	}
