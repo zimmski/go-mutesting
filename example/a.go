@@ -7,7 +7,7 @@ import (
 type A struct{}
 
 func fooA() (a A, b http.Header) {
-	a, b = A{}, http.Header{}
+	_, _, _ = a, b, http.Header{}
 
 	return a, b
 }

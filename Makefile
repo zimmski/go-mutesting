@@ -4,6 +4,8 @@ export ARGS := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
 export PKG := github.com/zimmski/go-mutesting
 export ROOT_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
+export TEST_TIMEOUT_IN_SECONDS := 240
+
 $(eval $(ARGS):;@:) # turn arguments into do-nothing targets
 export ARGS
 
@@ -43,8 +45,8 @@ install-tools:
 lint:
 	$(ROOT_DIR)/scripts/lint.sh
 test:
-	go test -race -test.timeout 120s $(PKG_TEST)
+	go test -race -test.timeout "$(TEST_TIMEOUT_IN_SECONDS)s" $(PKG_TEST)
 test-verbose:
-	go test -race -test.timeout 120s -v $(PKG_TEST)
+	go test -race -test.timeout "$(TEST_TIMEOUT_IN_SECONDS)s" -v $(PKG_TEST)
 test-verbose-with-coverage:
 	ginkgo -r -v -cover -race -skipPackage="testdata"
