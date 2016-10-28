@@ -1,4 +1,4 @@
-.PHONY: all clean clean-coverage generate install install-dependencies install-tools lint test test-verbose test-with-coverage
+.PHONY: all clean clean-coverage generate install install-dependencies install-tools lint test test-verbose test-verbose-with-coverage
 
 export ARGS := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
 export PKG := github.com/zimmski/go-mutesting
@@ -46,5 +46,5 @@ test:
 	go test -race -test.timeout 120s $(PKG_TEST)
 test-verbose:
 	go test -race -test.timeout 120s -v $(PKG_TEST)
-test-with-coverage:
-	ginkgo -r -cover -race -skipPackage="testdata"
+test-verbose-with-coverage:
+	ginkgo -r -v -cover -race -skipPackage="testdata"
