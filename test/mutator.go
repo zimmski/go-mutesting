@@ -3,10 +3,7 @@ package test
 import (
 	"bytes"
 	"fmt"
-	"go/ast"
-	"go/importer"
 	"go/printer"
-	"go/types"
 	"io/ioutil"
 	"testing"
 
@@ -22,39 +19,29 @@ func Mutator(t *testing.T, m mutator.Mutator, testFile string, count int) {
 	// Test if mutator is not nil
 	assert.NotNil(t, m)
 
-	// Read and parse the original source code
-	originalFile, err := ioutil.ReadFile(testFile)
+	// Read the origianl source code
+	data, err := ioutil.ReadFile(testFile)
 	assert.Nil(t, err)
 
-	f, fset, err := mutesting.ParseSource(originalFile)
-	assert.Nil(t, err)
-
-	conf := types.Config{
-		Importer: importer.Default(),
-	}
-
-	info := &types.Info{
-		Uses: make(map[*ast.Ident]types.Object),
-	}
-
-	pkg, err := conf.Check(".", fset, []*ast.File{f}, info)
+	// Parse and type-check the original source code
+	src, fset, pkg, info, err := mutesting.ParseAndTypeCheckFile(testFile)
 	assert.Nil(t, err)
 
 	// Mutate a non relevant node
-	assert.Nil(t, m(pkg, info, f))
+	assert.Nil(t, m(pkg, info, src))
 
 	// Count the actual mutations
-	n := mutesting.CountWalk(pkg, info, f, m)
+	n := mutesting.CountWalk(pkg, info, src, m)
 	assert.Equal(t, count, n)
 
 	// Mutate all relevant nodes -> test whole mutation process
-	changed := mutesting.MutateWalk(pkg, info, f, m)
+	changed := mutesting.MutateWalk(pkg, info, src, m)
 
 	for i := 0; i < count; i++ {
 		assert.True(t, <-changed)
 
 		buf := new(bytes.Buffer)
-		err = printer.Fprint(buf, fset, f)
+		err = printer.Fprint(buf, fset, src)
 		assert.Nil(t, err)
 
 		changedFilename := fmt.Sprintf("%s.%d.go", testFile, i)
@@ -71,10 +58,10 @@ func Mutator(t *testing.T, m mutator.Mutator, testFile string, count int) {
 		assert.True(t, <-changed)
 
 		buf = new(bytes.Buffer)
-		err = printer.Fprint(buf, fset, f)
+		err = printer.Fprint(buf, fset, src)
 		assert.Nil(t, err)
 
-		assert.Equal(t, string(originalFile), buf.String())
+		assert.Equal(t, string(data), buf.String())
 
 		changed <- true
 	}
