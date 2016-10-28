@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"go/ast"
 	"go/build"
-	"go/importer"
 	"go/parser"
 	"go/token"
 	"go/types"
+	"golang.org/x/tools/go/loader"
 	"io/ioutil"
 	"path/filepath"
 )
@@ -39,33 +39,43 @@ func ParseSource(data interface{}) (*ast.File, *token.FileSet, error) {
 // ParseAndTypeCheckFile parses and type-checks the given file, and returns everything interesting about the file.
 // If a fatal error is encountered the error return argument is not nil.
 func ParseAndTypeCheckFile(file string) (*ast.File, *token.FileSet, *types.Package, *types.Info, error) {
-	src, fset, err := ParseFile(file)
-	if err != nil {
-		return nil, nil, nil, nil, fmt.Errorf("Could not open file %q: %v", file, err)
-	}
-
-	dir, err := filepath.Abs(filepath.Dir(file))
+	fileAbs, err := filepath.Abs(file)
 	if err != nil {
 		return nil, nil, nil, nil, fmt.Errorf("Could not absolute the file path of %q: %v", file, err)
 	}
+	dir := filepath.Dir(fileAbs)
 
 	buildPkg, err := build.ImportDir(dir, build.FindOnly)
 	if err != nil {
 		return nil, nil, nil, nil, fmt.Errorf("Could not create build package of %q: %v", file, err)
 	}
 
-	conf := types.Config{
-		Importer: importer.Default(),
+	var conf = loader.Config{
+		ParserMode: parser.AllErrors | parser.ParseComments,
 	}
 
-	info := &types.Info{
-		Uses: make(map[*ast.Ident]types.Object),
+	if buildPkg.ImportPath != "." {
+		conf.Import(buildPkg.ImportPath)
+	} else {
+		// This is most definitely the case for files inside a "testdata" package
+		conf.CreateFromFilenames(dir, fileAbs)
 	}
 
-	pkg, err := conf.Check(buildPkg.ImportPath, fset, []*ast.File{src}, info) // TODO query the import path without the additional go/build.ImportDirt step
+	prog, err := conf.Load()
 	if err != nil {
-		return nil, nil, nil, nil, fmt.Errorf("Could not type-check file %q: %v", file, err)
+		return nil, nil, nil, nil, fmt.Errorf("Could not load package of file %q: %v", file, err)
 	}
 
-	return src, fset, pkg, info, nil
+	pkgInfo := prog.InitialPackages()[0]
+
+	var src *ast.File
+	for _, f := range pkgInfo.Files {
+		if prog.Fset.Position(f.Pos()).Filename == fileAbs {
+			src = f
+
+			break
+		}
+	}
+
+	return src, prog.Fset, pkgInfo.Pkg, &pkgInfo.Info, nil
 }

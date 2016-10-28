@@ -15,7 +15,7 @@ func TestMain(t *testing.T) {
 		"../../example",
 		[]string{"--debug", "--exec-timeout", "1"},
 		returnOk,
-		"The mutation score is 0.500000 (7 passed, 7 failed, 9 duplicated, 0 skipped, total is 14)",
+		"The mutation score is 0.466667 (7 passed, 8 failed, 9 duplicated, 0 skipped, total is 15)",
 	)
 }
 
@@ -25,7 +25,7 @@ func TestMainRecursive(t *testing.T) {
 		"../../example",
 		[]string{"--debug", "--exec-timeout", "1", "./..."},
 		returnOk,
-		"The mutation score is 0.533333 (8 passed, 7 failed, 9 duplicated, 0 skipped, total is 15)",
+		"The mutation score is 0.500000 (8 passed, 8 failed, 9 duplicated, 0 skipped, total is 16)",
 	)
 }
 
@@ -35,7 +35,7 @@ func TestMainFromOtherDirectory(t *testing.T) {
 		"../..",
 		[]string{"--debug", "--exec-timeout", "1", "github.com/zimmski/go-mutesting/example"},
 		returnOk,
-		"The mutation score is 0.500000 (7 passed, 7 failed, 9 duplicated, 0 skipped, total is 14)",
+		"The mutation score is 0.466667 (7 passed, 8 failed, 9 duplicated, 0 skipped, total is 15)",
 	)
 }
 
