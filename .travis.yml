@@ -12,7 +12,7 @@ install:
 
 script:
   - make lint
-  - make test-with-coverage
+  - make test-verbose-with-coverage
   - gover
   - if [ "$TRAVIS_SECURE_ENV_VARS" = "true" ]; then goveralls -coverprofile=gover.coverprofile -service=travis-ci -repotoken $COVERALLS_TOKEN; fi
 
