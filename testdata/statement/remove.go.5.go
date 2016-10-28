@@ -19,6 +19,7 @@ func foo() int {
 			n += 3
 		}
 		_ = n
+
 	}
 
 	if n < 0 {
