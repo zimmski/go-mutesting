@@ -5,9 +5,7 @@ import (
 	"crypto/md5"
 	"fmt"
 	"go/ast"
-	"go/build"
 	"go/format"
-	"go/importer"
 	"go/printer"
 	"go/token"
 	"go/types"
@@ -262,32 +260,9 @@ MUTATOR:
 	for _, file := range files {
 		debug(opts, "Mutate %q", file)
 
-		src, fset, err := mutesting.ParseFile(file)
+		src, fset, pkg, info, err := mutesting.ParseAndTypeCheckFile(file)
 		if err != nil {
-			return exitError("Could not open file %q: %v", file, err)
-		}
-
-		dir, err := filepath.Abs(filepath.Dir(file))
-		if err != nil {
-			return exitError("Could not absolute the file path of %q: %v", file, err)
-		}
-
-		buildPkg, err := build.ImportDir(dir, build.FindOnly)
-		if err != nil {
-			return exitError("Could create build package of %q: %v", file, err)
-		}
-
-		conf := types.Config{
-			Importer: importer.Default(),
-		}
-
-		info := &types.Info{
-			Uses: make(map[*ast.Ident]types.Object),
-		}
-
-		pkg, err := conf.Check(buildPkg.ImportPath, fset, []*ast.File{src}, info) // TODO query the import path without the additional go/build.ImportDirt step
-		if err != nil {
-			return exitError("Could not type check file %q: %v", file, err)
+			return exitError(err.Error())
 		}
 
 		err = os.MkdirAll(tmpDir+"/"+filepath.Dir(file), 0755)
@@ -355,9 +330,8 @@ func mutate(opts *options, mutators []mutatorItem, mutationBlackList map[string]
 			mutationFile := fmt.Sprintf("%s.%d", tmpFile, mutationID)
 			checksum, duplicate, err := saveAST(mutationBlackList, mutationFile, fset, src)
 			if err != nil {
-				panic(err)
-			}
-			if duplicate {
+				fmt.Printf("INTERNAL ERROR %s\n", err.Error())
+			} else if duplicate {
 				debug(opts, "%q is a duplicate, we ignore it", mutationFile)
 
 				stats.duplicated++

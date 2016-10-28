@@ -40,6 +40,7 @@ func foo() int {
 		n--
 	default:
 		_ = n
+
 		fmt.Println(n)
 		func() {}()
 	}

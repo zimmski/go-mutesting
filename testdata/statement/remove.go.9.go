@@ -24,6 +24,7 @@ func foo() int {
 
 	if n < 0 {
 		_ = n
+
 	}
 
 	n++
