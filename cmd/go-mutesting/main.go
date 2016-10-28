@@ -330,9 +330,8 @@ func mutate(opts *options, mutators []mutatorItem, mutationBlackList map[string]
 			mutationFile := fmt.Sprintf("%s.%d", tmpFile, mutationID)
 			checksum, duplicate, err := saveAST(mutationBlackList, mutationFile, fset, src)
 			if err != nil {
-				panic(err)
-			}
-			if duplicate {
+				fmt.Printf("INTERNAL ERROR %s\n", err.Error())
+			} else if duplicate {
 				debug(opts, "%q is a duplicate, we ignore it", mutationFile)
 
 				stats.duplicated++
