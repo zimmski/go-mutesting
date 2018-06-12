@@ -20,7 +20,6 @@ import (
 
 	"github.com/jessevdk/go-flags"
 	"github.com/zimmski/go-tool/importing"
-	"github.com/zimmski/osutil"
 
 	"github.com/zimmski/go-mutesting"
 	"github.com/zimmski/go-mutesting/astutil"
@@ -28,6 +27,7 @@ import (
 	_ "github.com/zimmski/go-mutesting/mutator/branch"
 	_ "github.com/zimmski/go-mutesting/mutator/expression"
 	_ "github.com/zimmski/go-mutesting/mutator/statement"
+	"github.com/zimmski/go-mutesting/osutil"
 )
 
 const (
@@ -133,7 +133,7 @@ func verbose(opts *options, format string, args ...interface{}) {
 }
 
 func exitError(format string, args ...interface{}) int {
-	fmt.Fprintf(os.Stderr, format+"\n", args...)
+	_, _ = fmt.Fprintf(os.Stderr, format+"\n", args...)
 
 	return returnError
 }
