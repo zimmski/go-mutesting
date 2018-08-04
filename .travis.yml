@@ -12,8 +12,8 @@ go:
 sudo: false
 
 install:
-  - make install-tools
   - make install-dependencies
+  - make install-tools
   - make install
 
 script:
