@@ -16,19 +16,30 @@ else
 endif
 
 all: install-dependencies install-tools install lint test
+.PHONY: all
 
 clean:
 	go clean -i $(PKG)/...
 	go clean -i -race $(PKG)/...
+.PHONY: clean
+
 clean-coverage:
 	find $(ROOT_DIR) | grep .coverprofile | xargs rm
+.PHONY: clean-coverage
+
 generate: clean
 	go generate $(PKG)/...
+.PHONY: generate
+
 install:
 	go install -v $(PKG)/...
+.PHONY: install
+
 install-dependencies:
 	go get -t -v $(PKG)/...
 	go test -i -v $(PKG)/...
+.PHONY: install-dependencies
+
 install-tools:
 	# generation
 	go get -u -v golang.org/x/tools/cmd/stringer
@@ -42,11 +53,20 @@ install-tools:
 	go get -u -v github.com/onsi/ginkgo/ginkgo/...
 	go get -u -v github.com/modocache/gover/...
 	go get -u -v github.com/mattn/goveralls/...
+.PHONY: install-tools
+
 lint:
 	$(ROOT_DIR)/scripts/lint.sh
+.PHONY: lint
+
 test:
 	go test -race -test.timeout "$(TEST_TIMEOUT_IN_SECONDS)s" $(PKG_TEST)
+.PHONY: test
+
 test-verbose:
 	go test -race -test.timeout "$(TEST_TIMEOUT_IN_SECONDS)s" -v $(PKG_TEST)
+.PHONY: test-verbose
+
 test-verbose-with-coverage:
 	ginkgo -r -v -cover -race -skipPackage="testdata"
+.PHONY: test-verbose-with-coverage
