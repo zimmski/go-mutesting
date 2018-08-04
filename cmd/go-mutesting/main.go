@@ -133,7 +133,7 @@ func verbose(opts *options, format string, args ...interface{}) {
 }
 
 func exitError(format string, args ...interface{}) int {
-	fmt.Fprintf(os.Stderr, format+"\n", args...)
+	_, _ = fmt.Fprintf(os.Stderr, format+"\n", args...)
 
 	return returnError
 }

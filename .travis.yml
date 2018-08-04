@@ -1,22 +1,21 @@
 language: go
 
+os:
+  - linux
+  - osx
+
 go:
   - 1.8.x
   - 1.9.x
-
-sudo: false
+  - 1.10.x
 
 install:
-  - make install-tools
   - make install-dependencies
+  - make install-tools
   - make install
 
 script:
   - make lint
   - make test-verbose-with-coverage
   - gover
-  - if [ "$TRAVIS_SECURE_ENV_VARS" = "true" ]; then goveralls -coverprofile=gover.coverprofile -service=travis-ci -repotoken $COVERALLS_TOKEN; fi
-
-env:
-  # coveralls.io
-  secure: "OntYh2L1QW3VWuxKHDh5tWdWpUzIEuCVKqpjN11OOFriByT9AC1noYFq15KV30vtIyqs25fy7II5KjRrlTlawQFga0ahSG7BmFW0gfqLQWbPouAlHNVPVkf4QfTKb8Dtn1JQVB5p6egPCjE/xzZE5/mjgylsfTKRz5Y85OPfri8="
+  - if [ "$TRAVIS_SECURE_ENV_VARS" = "true" ]; then goveralls -coverprofile=gover.coverprofile -service=travis-ci; fi
