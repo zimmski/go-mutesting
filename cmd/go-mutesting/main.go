@@ -37,12 +37,6 @@ const (
 	returnError
 )
 
-const (
-	execPassed  = 0
-	execFailed  = 1
-	execSkipped = 2
-)
-
 type options struct {
 	General struct {
 		Debug                bool `long:"debug" description:"Debug log output"`
