@@ -287,7 +287,7 @@ MUTATOR:
 				}
 			}
 		} else {
-			mutationID = mutate(opts, mutators, mutationBlackList, mutationID, pkg, info, file, fset, src, src, tmpFile, execs, stats)
+			_ = mutate(opts, mutators, mutationBlackList, mutationID, pkg, info, file, fset, src, src, tmpFile, execs, stats)
 		}
 	}
 
