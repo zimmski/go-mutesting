@@ -229,7 +229,7 @@ MUTATOR:
 			}
 		}
 
-		debug(opts, "Enable mutator %q", name)
+		verbose(opts, "Enable mutator %q", name)
 
 		m, _ := mutator.New(name)
 		mutators = append(mutators, mutatorItem{
@@ -242,7 +242,7 @@ MUTATOR:
 	if err != nil {
 		panic(err)
 	}
-	debug(opts, "Save mutations into %q", tmpDir)
+	verbose(opts, "Save mutations into %q", tmpDir)
 
 	var execs []string
 	if opts.Exec.Exec != "" {
@@ -252,7 +252,7 @@ MUTATOR:
 	stats := &mutationStats{}
 
 	for _, file := range files {
-		debug(opts, "Mutate %q", file)
+		verbose(opts, "Mutate %q", file)
 
 		src, fset, pkg, info, err := mutesting.ParseAndTypeCheckFile(file)
 		if err != nil {
