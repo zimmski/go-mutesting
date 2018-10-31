@@ -37,12 +37,6 @@ const (
 	returnError
 )
 
-const (
-	execPassed  = 0
-	execFailed  = 1
-	execSkipped = 2
-)
-
 type options struct {
 	General struct {
 		Debug                bool `long:"debug" description:"Debug log output"`
@@ -235,7 +229,7 @@ MUTATOR:
 			}
 		}
 
-		debug(opts, "Enable mutator %q", name)
+		verbose(opts, "Enable mutator %q", name)
 
 		m, _ := mutator.New(name)
 		mutators = append(mutators, mutatorItem{
@@ -248,7 +242,7 @@ MUTATOR:
 	if err != nil {
 		panic(err)
 	}
-	debug(opts, "Save mutations into %q", tmpDir)
+	verbose(opts, "Save mutations into %q", tmpDir)
 
 	var execs []string
 	if opts.Exec.Exec != "" {
@@ -258,7 +252,7 @@ MUTATOR:
 	stats := &mutationStats{}
 
 	for _, file := range files {
-		debug(opts, "Mutate %q", file)
+		verbose(opts, "Mutate %q", file)
 
 		src, fset, pkg, info, err := mutesting.ParseAndTypeCheckFile(file)
 		if err != nil {
@@ -293,7 +287,7 @@ MUTATOR:
 				}
 			}
 		} else {
-			mutationID = mutate(opts, mutators, mutationBlackList, mutationID, pkg, info, file, fset, src, src, tmpFile, execs, stats)
+			_ = mutate(opts, mutators, mutationBlackList, mutationID, pkg, info, file, fset, src, src, tmpFile, execs, stats)
 		}
 	}
 
