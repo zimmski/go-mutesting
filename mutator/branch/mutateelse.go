@@ -27,7 +27,7 @@ func MutatorElse(pkg *types.Package, info *types.Info, node ast.Node) []mutator.
 	old := n.Else
 
 	return []mutator.Mutation{
-		mutator.Mutation{
+		{
 			Change: func() {
 				n.Else = astutil.CreateNoopOfStatement(pkg, info, old)
 			},

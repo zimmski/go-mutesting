@@ -4,7 +4,7 @@ if [ -z ${PKG+x} ]; then echo "PKG is not set"; exit 1; fi
 if [ -z ${ROOT_DIR+x} ]; then echo "ROOT_DIR is not set"; exit 1; fi
 
 echo "gofmt:"
-OUT=$(gofmt -l $ROOT_DIR 2>&1 | grep --invert-match -E "(/example)")
+OUT=$(gofmt -l -s $ROOT_DIR 2>&1 | grep --invert-match -E "(/example)")
 if [ -n "$OUT" ]; then echo "$OUT"; PROBLEM=1; fi
 
 echo "errcheck:"
