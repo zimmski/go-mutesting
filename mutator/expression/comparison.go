@@ -33,7 +33,7 @@ func MutatorComparison(pkg *types.Package, info *types.Info, node ast.Node) []mu
 	}
 
 	return []mutator.Mutation{
-		mutator.Mutation{
+		{
 			Change: func() {
 				n.Op = r
 			},
