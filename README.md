@@ -231,9 +231,10 @@ Examples for exec commands can be found in the [scripts](/scripts/exec) director
 
 ### Expression mutators
 
-| Name                | Description                                    |
-| :------------------ | :--------------------------------------------- |
-| expression/remove   | Searches for `&&` and <code>\|\|</code> operators and makes each term of the operator irrelevant by using `true` or `false` as replacements. |
+| Name                  | Description                                    |
+| :-------------------- | :--------------------------------------------- |
+| expression/comparison | Searches for comparison operators, such as `>` and `<=`, and replaces them with similar operators to catch off-by-one errors, e.g. `>` is replaced by `>=`. |
+| expression/remove     | Searches for `&&` and <code>\|\|</code> operators and makes each term of the operator irrelevant by using `true` or `false` as replacements. |
 
 ### Statement mutators
 
