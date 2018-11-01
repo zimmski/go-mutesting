@@ -35,7 +35,7 @@ func MutatorRemoveTerm(pkg *types.Package, info *types.Info, node ast.Node) []mu
 	y := n.Y
 
 	return []mutator.Mutation{
-		mutator.Mutation{
+		{
 			Change: func() {
 				n.X = r
 			},
@@ -43,7 +43,7 @@ func MutatorRemoveTerm(pkg *types.Package, info *types.Info, node ast.Node) []mu
 				n.X = x
 			},
 		},
-		mutator.Mutation{
+		{
 			Change: func() {
 				n.Y = r
 			},
