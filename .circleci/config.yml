@@ -1,0 +1,70 @@
+version: 2.1
+
+orbs:
+  codecov: codecov/codecov@1.0.5
+
+references:
+  go_image: &go_image
+    image: circleci/golang:1.12.6
+
+executors:
+  executor:
+    docker:
+      - *go_image
+    working_directory: /tmp
+
+jobs:
+  set-workflow-envs:
+    run:
+      name: Set Environment Variables
+      command: |
+        echo 'export GO111MODULE=on' >> $BASH_ENV
+  unit-test:
+    executor: executor
+    steps:
+      - checkout
+      - run: mkdir -p workspace
+      - run:
+          name: Run test coverage
+          command: |
+            go mod download
+            go test -race -coverprofile workspace/c.out -covermode=atomic ./...
+      - persist_to_workspace:
+          root: workspace
+          paths:
+            - c.out
+  codeclimate-test-coverage:
+    executor: executor
+    steps:
+      - attach_workspace:
+          at: /tmp/workspace
+      - run:
+          name: Setup Code Climate test-reporter
+          command: |
+            curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+            chmod +x ./cc-test-reporter
+      - run:
+          name: Upload test coverate to Code Climate
+          command: |
+            # have to format coverage to work with Go >1.11 and Modules - https://github.com/codeclimate/test-reporter/issues/363
+            ./cc-test-reporter after-build --prefix github.com/mccurdyc/go-mutesting --coverage-input-type gocov --exit-code $?
+  codecov-test-coverage:
+    executor: executor
+    steps:
+      - attach_workspace:
+          at: /tmp/workspace
+      - codecov/upload:
+          file: c.out
+
+workflows:
+  version: 2
+  test:
+    jobs:
+      - set-workflow-envs
+      - unit-test
+      - codeclimate-test-coverage
+          requires:
+            - unit-test
+      - codecov-test-coverage
+          requires:
+            - unit-test
