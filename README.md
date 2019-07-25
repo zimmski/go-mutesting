@@ -1,5 +1,6 @@
 # go-mutesting
 [![GoDoc](https://godoc.org/github.com/mccurdyc/go-mutesting?status.png)](https://godoc.org/github.com/mccurdyc/go-mutesting)
+[![CircleCI](https://circleci.com/gh/mccurdyc/go-mutesting.svg?style=svg)](https://circleci.com/gh/mccurdyc/go-mutesting)
 [![Maintainability](https://api.codeclimate.com/v1/badges/78b606afe4ce490327a6/maintainability)](https://codeclimate.com/github/mccurdyc/go-mutesting/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/78b606afe4ce490327a6/test_coverage)](https://codeclimate.com/github/mccurdyc/go-mutesting/test_coverage)
 [![codecov](https://codecov.io/gh/mccurdyc/go-mutesting/branch/master/graph/badge.svg)](https://codecov.io/gh/mccurdyc/go-mutesting)
