@@ -22,12 +22,12 @@ import (
 	"github.com/zimmski/go-tool/importing"
 	"github.com/zimmski/osutil"
 
-	"github.com/zimmski/go-mutesting"
-	"github.com/zimmski/go-mutesting/astutil"
-	"github.com/zimmski/go-mutesting/mutator"
-	_ "github.com/zimmski/go-mutesting/mutator/branch"
-	_ "github.com/zimmski/go-mutesting/mutator/expression"
-	_ "github.com/zimmski/go-mutesting/mutator/statement"
+	"github.com/mccurdyc/go-mutesting"
+	"github.com/mccurdyc/go-mutesting/astutil"
+	"github.com/mccurdyc/go-mutesting/mutator"
+	_ "github.com/mccurdyc/go-mutesting/mutator/branch"
+	_ "github.com/mccurdyc/go-mutesting/mutator/expression"
+	_ "github.com/mccurdyc/go-mutesting/mutator/statement"
 )
 
 const (

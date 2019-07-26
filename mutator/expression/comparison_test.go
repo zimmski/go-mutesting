@@ -3,7 +3,7 @@ package expression
 import (
 	"testing"
 
-	"github.com/zimmski/go-mutesting/test"
+	"github.com/mccurdyc/go-mutesting/test"
 )
 
 func TestMutatorComparison(t *testing.T) {

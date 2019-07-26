@@ -3,7 +3,7 @@ package branch
 import (
 	"testing"
 
-	"github.com/zimmski/go-mutesting/test"
+	"github.com/mccurdyc/go-mutesting/test"
 )
 
 func TestMutatorCase(t *testing.T) {
