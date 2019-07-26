@@ -15,10 +15,12 @@ executors:
 
 jobs:
   set-workflow-envs:
-    run:
-      name: Set Environment Variables
-      command: |
-        echo 'export GO111MODULE=on' >> $BASH_ENV
+    executor: executor
+    steps:
+      - run:
+          name: Set Environment Variables
+          command: |
+            echo 'export GO111MODULE=on' >> $BASH_ENV
   unit-test:
     executor: executor
     steps:
