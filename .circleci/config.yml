@@ -11,7 +11,7 @@ executors:
   executor:
     docker:
       - *go_image
-    working_directory: go-mutesting
+    working_directory: ~/repo
 
 jobs:
   set-workflow-envs:
@@ -39,7 +39,7 @@ jobs:
     executor: executor
     steps:
       - attach_workspace:
-          at: go-mutesting/workspace
+          at: ~/repo/workspace
       - run:
           name: Setup Code Climate test-reporter
           command: |
@@ -54,7 +54,7 @@ jobs:
     executor: executor
     steps:
       - attach_workspace:
-          at: go-mutesting/workspace
+          at: ~/repo/workspace
       - codecov/upload:
           file: c.out
 
@@ -62,7 +62,9 @@ workflows:
   build-test:
     jobs:
       - set-workflow-envs
-      - unit-test
+      - unit-test:
+          requires:
+            - set-workflow-envs
       - codeclimate-test-coverage:
           requires:
             - unit-test
