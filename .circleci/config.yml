@@ -11,7 +11,7 @@ executors:
   executor:
     docker:
       - *go_image
-    working_directory: /go-mutesting
+    working_directory: go-mutesting
 
 jobs:
   set-workflow-envs:
@@ -39,7 +39,7 @@ jobs:
     executor: executor
     steps:
       - attach_workspace:
-          at: /go-mutesting/workspace
+          at: go-mutesting/workspace
       - run:
           name: Setup Code Climate test-reporter
           command: |
@@ -54,7 +54,7 @@ jobs:
     executor: executor
     steps:
       - attach_workspace:
-          at: /go-mutesting/workspace
+          at: go-mutesting/workspace
       - codecov/upload:
           file: c.out
 
