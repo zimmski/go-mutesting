@@ -57,13 +57,14 @@ jobs:
           file: c.out
 
 workflows:
-  test:
+  version: 2
+  build-test:
     jobs:
       - set-workflow-envs
       - unit-test
-      - codeclimate-test-coverage
+      - codeclimate-test-coverage:
           requires:
             - unit-test
-      - codecov-test-coverage
+      - codecov-test-coverage:
           requires:
             - unit-test
