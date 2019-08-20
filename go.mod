@@ -1,6 +1,6 @@
 module github.com/zimmski/go-mutesting
 
-go 1.12
+go 1.10
 
 require (
 	github.com/jessevdk/go-flags v1.4.0

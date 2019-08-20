@@ -7,6 +7,7 @@ os:
 go:
   - 1.10.x
   - 1.11.x
+  - 1.12.x
 
 install:
   - make install-dependencies
