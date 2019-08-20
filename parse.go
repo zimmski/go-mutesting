@@ -39,7 +39,7 @@ func ParseSource(data interface{}) (*ast.File, *token.FileSet, error) {
 
 // ParseAndTypeCheckFile parses and type-checks the given file, and returns everything interesting about the file.
 // If a fatal error is encountered the error return argument is not nil.
-func ParseAndTypeCheckFile(file string) (*ast.File, *token.FileSet, *types.Package, *types.Info, error) {
+func ParseAndTypeCheckFile(file string, flags ...string) (*ast.File, *token.FileSet, *types.Package, *types.Info, error) {
 	fileAbs, err := filepath.Abs(file)
 	if err != nil {
 		return nil, nil, nil, nil, fmt.Errorf("Could not absolute the file path of %q: %v", file, err)
@@ -51,9 +51,18 @@ func ParseAndTypeCheckFile(file string) (*ast.File, *token.FileSet, *types.Packa
 		return nil, nil, nil, nil, fmt.Errorf("Could not create build package of %q: %v", file, err)
 	}
 
+	pkgPath := buildPkg.ImportPath
+	if buildPkg.ImportPath == "." {
+		pkgPath = dir
+	}
+
 	prog, err := packages.Load(&packages.Config{
-		Mode: packages.NeedTypes | packages.NeedSyntax | packages.NeedDeps | packages.NeedName | packages.NeedImports | packages.NeedTypesInfo,
-	}, buildPkg.ImportPath)
+		ParseFile: func(fset *token.FileSet, filename string, src []byte) (*ast.File, error) {
+			return parser.ParseFile(fset, filename, src, parser.ParseComments|parser.AllErrors)
+		},
+		BuildFlags: flags,
+		Mode:       packages.NeedTypes | packages.NeedSyntax | packages.NeedDeps | packages.NeedName | packages.NeedImports | packages.NeedTypesInfo | packages.NeedFiles,
+	}, pkgPath)
 	if err != nil {
 		fmt.Println(err)
 		return nil, nil, nil, nil, fmt.Errorf("Could not load package of file %q: %v", file, err)
