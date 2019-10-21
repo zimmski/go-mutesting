@@ -42,13 +42,13 @@ func ParseSource(data interface{}) (*ast.File, *token.FileSet, error) {
 func ParseAndTypeCheckFile(file string, flags ...string) (*ast.File, *token.FileSet, *types.Package, *types.Info, error) {
 	fileAbs, err := filepath.Abs(file)
 	if err != nil {
-		return nil, nil, nil, nil, fmt.Errorf("Could not absolute the file path of %q: %v", file, err)
+		return nil, nil, nil, nil, fmt.Errorf("could not absolute the file path of %q: %v", file, err)
 	}
 	dir := filepath.Dir(fileAbs)
 
 	buildPkg, err := build.ImportDir(dir, build.FindOnly)
 	if err != nil {
-		return nil, nil, nil, nil, fmt.Errorf("Could not create build package of %q: %v", file, err)
+		return nil, nil, nil, nil, fmt.Errorf("could not create build package of %q: %v", file, err)
 	}
 
 	pkgPath := buildPkg.ImportPath
@@ -65,7 +65,7 @@ func ParseAndTypeCheckFile(file string, flags ...string) (*ast.File, *token.File
 	}, pkgPath)
 	if err != nil {
 		fmt.Println(err)
-		return nil, nil, nil, nil, fmt.Errorf("Could not load package of file %q: %v", file, err)
+		return nil, nil, nil, nil, fmt.Errorf("could not load package of file %q: %v", file, err)
 	}
 
 	pkgInfo := prog[0]
