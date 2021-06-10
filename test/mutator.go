@@ -24,7 +24,7 @@ func Mutator(t *testing.T, m mutator.Mutator, testFile string, count int) {
 	assert.Nil(t, err)
 
 	// Parse and type-check the original source code
-	src, fset, pkg, info, err := mutesting.ParseAndTypeCheckFile(testFile)
+	src, fset, pkg, info, err := mutesting.ParseAndTypeCheckFile(testFile, `-tags=test`)
 	assert.Nil(t, err)
 
 	// Mutate a non relevant node

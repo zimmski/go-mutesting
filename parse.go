@@ -7,9 +7,10 @@ import (
 	"go/parser"
 	"go/token"
 	"go/types"
-	"golang.org/x/tools/go/loader"
 	"io/ioutil"
 	"path/filepath"
+
+	"golang.org/x/tools/go/packages"
 )
 
 // ParseFile parses the content of the given file and returns the corresponding ast.File node and its file set for positional information.
@@ -38,44 +39,45 @@ func ParseSource(data interface{}) (*ast.File, *token.FileSet, error) {
 
 // ParseAndTypeCheckFile parses and type-checks the given file, and returns everything interesting about the file.
 // If a fatal error is encountered the error return argument is not nil.
-func ParseAndTypeCheckFile(file string) (*ast.File, *token.FileSet, *types.Package, *types.Info, error) {
+func ParseAndTypeCheckFile(file string, flags ...string) (*ast.File, *token.FileSet, *types.Package, *types.Info, error) {
 	fileAbs, err := filepath.Abs(file)
 	if err != nil {
-		return nil, nil, nil, nil, fmt.Errorf("Could not absolute the file path of %q: %v", file, err)
+		return nil, nil, nil, nil, fmt.Errorf("could not absolute the file path of %q: %v", file, err)
 	}
 	dir := filepath.Dir(fileAbs)
 
 	buildPkg, err := build.ImportDir(dir, build.FindOnly)
 	if err != nil {
-		return nil, nil, nil, nil, fmt.Errorf("Could not create build package of %q: %v", file, err)
+		return nil, nil, nil, nil, fmt.Errorf("could not create build package of %q: %v", file, err)
 	}
 
-	var conf = loader.Config{
-		ParserMode: parser.AllErrors | parser.ParseComments,
+	pkgPath := buildPkg.ImportPath
+	if buildPkg.ImportPath == "." {
+		pkgPath = dir
 	}
 
-	if buildPkg.ImportPath != "." {
-		conf.Import(buildPkg.ImportPath)
-	} else {
-		// This is most definitely the case for files inside a "testdata" package
-		conf.CreateFromFilenames(dir, fileAbs)
-	}
-
-	prog, err := conf.Load()
+	prog, err := packages.Load(&packages.Config{
+		ParseFile: func(fset *token.FileSet, filename string, src []byte) (*ast.File, error) {
+			return parser.ParseFile(fset, filename, src, parser.ParseComments|parser.AllErrors)
+		},
+		BuildFlags: flags,
+		Mode:       packages.NeedTypes | packages.NeedSyntax | packages.NeedDeps | packages.NeedName | packages.NeedImports | packages.NeedTypesInfo | packages.NeedFiles,
+	}, pkgPath)
 	if err != nil {
-		return nil, nil, nil, nil, fmt.Errorf("Could not load package of file %q: %v", file, err)
+		fmt.Println(err)
+		return nil, nil, nil, nil, fmt.Errorf("could not load package of file %q: %v", file, err)
 	}
 
-	pkgInfo := prog.InitialPackages()[0]
+	pkgInfo := prog[0]
 
 	var src *ast.File
-	for _, f := range pkgInfo.Files {
-		if prog.Fset.Position(f.Pos()).Filename == fileAbs {
+	for _, f := range pkgInfo.Syntax {
+		if pkgInfo.Fset.Position(f.Pos()).Filename == fileAbs {
 			src = f
 
 			break
 		}
 	}
 
-	return src, prog.Fset, pkgInfo.Pkg, &pkgInfo.Info, nil
+	return src, pkgInfo.Fset, pkgInfo.Types, pkgInfo.TypesInfo, nil
 }
