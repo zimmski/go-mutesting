@@ -49,6 +49,16 @@ func TestMainMatch(t *testing.T) {
 	)
 }
 
+func TestMainScore(t *testing.T) {
+	testMain(
+		t,
+		"../../example",
+		[]string{"--debug", "--exec-timeout", "1", "--score", "0.46"},
+		returnError,
+		"The mutation score is 0.450000 (9 passed, 11 failed, 8 duplicated, 0 skipped, total is 20)",
+	)
+}
+
 func testMain(t *testing.T, root string, exec []string, expectedExitCode int, contains string) {
 	saveStderr := os.Stderr
 	saveStdout := os.Stdout

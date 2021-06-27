@@ -67,7 +67,8 @@ type options struct {
 	} `group:"Exec options"`
 
 	Test struct {
-		Recursive bool `long:"test-recursive" description:"Defines if the executer should test recursively"`
+		Recursive bool    `long:"test-recursive" description:"Defines if the executer should test recursively"`
+		Score     float64 `long:"score" description:"Minimal acceptable scores value. If result is less than given, exit code will be non-zero" default:"0"`
 	} `group:"Test options"`
 
 	Remaining struct {
@@ -111,7 +112,7 @@ func checkArguments(args []string, opts *options) (bool, int) {
 		opts.General.Verbose = true
 	}
 
-	return false, 0
+	return false, returnOk
 }
 
 func debug(opts *options, format string, args ...interface{}) {
@@ -299,13 +300,17 @@ MUTATOR:
 		debug(opts, "Remove %q", tmpDir)
 	}
 
+	exitCode := returnOk
 	if !opts.Exec.NoExec {
 		fmt.Printf("The mutation score is %f (%d passed, %d failed, %d duplicated, %d skipped, total is %d)\n", stats.Score(), stats.passed, stats.failed, stats.duplicated, stats.skipped, stats.Total())
+		if stats.Score() < opts.Test.Score {
+			exitCode = returnError
+		}
 	} else {
 		fmt.Println("Cannot do a mutation testing summary since no exec command was executed.")
 	}
 
-	return returnOk
+	return exitCode
 }
 
 func mutate(opts *options, mutators []mutatorItem, mutationBlackList map[string]struct{}, mutationID int, pkg *types.Package, info *types.Info, file string, fset *token.FileSet, src ast.Node, node ast.Node, tmpFile string, execs []string, stats *mutationStats) int {
