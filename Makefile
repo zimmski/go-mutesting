@@ -36,8 +36,7 @@ install:
 .PHONY: install
 
 install-dependencies:
-	go mod vendor
-	go test -i -v $(PKG)/...
+	go get
 .PHONY: install-dependencies
 
 install-tools:
