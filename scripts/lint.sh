@@ -16,7 +16,7 @@ OUT=$(go vet -all=true $ROOT_DIR 2>&1 | grep --invert-match -E "(Checking file|\
 if [ -n "$OUT" ]; then echo "$OUT"; PROBLEM=1; fi
 
 echo "golint:"
-OUT=$(golint $PKG/... 2>&1 | grep --invert-match -E "(/(example|vendor))")
+OUT=$(golint ./... 2>&1 | grep --invert-match -E "(^(example|vendor))")
 if [ -n "$OUT" ]; then echo "$OUT"; PROBLEM=1; fi
 
 echo "staticcheck:"
