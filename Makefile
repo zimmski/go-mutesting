@@ -4,7 +4,7 @@ export ARGS := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
 export PKG := github.com/zimmski/go-mutesting
 export ROOT_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
-export TEST_TIMEOUT_IN_SECONDS := 240
+export TEST_TIMEOUT_IN_SECONDS := 360
 
 $(eval $(ARGS):;@:) # turn arguments into do-nothing targets
 export ARGS

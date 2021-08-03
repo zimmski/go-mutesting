@@ -39,10 +39,11 @@ const (
 
 type options struct {
 	General struct {
-		Debug                bool `long:"debug" description:"Debug log output"`
-		DoNotRemoveTmpFolder bool `long:"do-not-remove-tmp-folder" description:"Do not remove the tmp folder where all mutations are saved to"`
-		Help                 bool `long:"help" description:"Show this help message"`
-		Verbose              bool `long:"verbose" description:"Verbose log output"`
+		Debug                bool   `long:"debug" description:"Debug log output"`
+		DoNotRemoveTmpFolder bool   `long:"do-not-remove-tmp-folder" description:"Do not remove the tmp folder where all mutations are saved to"`
+		Help                 bool   `long:"help" description:"Show this help message"`
+		Verbose              bool   `long:"verbose" description:"Verbose log output"`
+		TestTags             string `long:"test-tags" description:"Build tags used when running go test"`
 	} `group:"General options"`
 
 	Files struct {
@@ -407,7 +408,13 @@ func mutateExec(opts *options, pkg *types.Package, file string, src ast.Node, mu
 			pkgName += "/..."
 		}
 
-		test, err := exec.Command("go", "test", "-timeout", fmt.Sprintf("%ds", opts.Exec.Timeout), pkgName).CombinedOutput()
+		var test []byte
+		if opts.General.TestTags != "" {
+			test, err = exec.Command("go", "test", "-tags", opts.General.TestTags, "-timeout", fmt.Sprintf("%ds", opts.Exec.Timeout), pkgName).CombinedOutput()
+		} else {
+			test, err = exec.Command("go", "test", "-timeout", fmt.Sprintf("%ds", opts.Exec.Timeout), pkgName).CombinedOutput()
+		}
+
 		if err == nil {
 			execExitCode = 0
 		} else if e, ok := err.(*exec.ExitError); ok {

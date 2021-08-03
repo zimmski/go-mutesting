@@ -15,7 +15,7 @@ func TestMain(t *testing.T) {
 		"../../example",
 		[]string{"--debug", "--exec-timeout", "1"},
 		returnOk,
-		"The mutation score is 0.450000 (9 passed, 11 failed, 8 duplicated, 0 skipped, total is 20)",
+		"The mutation score is 0.428571 (9 passed, 12 failed, 8 duplicated, 0 skipped, total is 21)",
 	)
 }
 
@@ -25,7 +25,7 @@ func TestMainRecursive(t *testing.T) {
 		"../../example",
 		[]string{"--debug", "--exec-timeout", "1", "./..."},
 		returnOk,
-		"The mutation score is 0.476190 (10 passed, 11 failed, 8 duplicated, 0 skipped, total is 21)",
+		"The mutation score is 0.454545 (10 passed, 12 failed, 8 duplicated, 0 skipped, total is 22)",
 	)
 }
 
@@ -35,7 +35,7 @@ func TestMainFromOtherDirectory(t *testing.T) {
 		"../..",
 		[]string{"--debug", "--exec-timeout", "1", "github.com/zimmski/go-mutesting/example"},
 		returnOk,
-		"The mutation score is 0.450000 (9 passed, 11 failed, 8 duplicated, 0 skipped, total is 20)",
+		"The mutation score is 0.428571 (9 passed, 12 failed, 8 duplicated, 0 skipped, total is 21)",
 	)
 }
 
@@ -46,6 +46,16 @@ func TestMainMatch(t *testing.T) {
 		[]string{"--debug", "--exec", "../scripts/exec/test-mutated-package.sh", "--exec-timeout", "1", "--match", "baz", "./..."},
 		returnOk,
 		"The mutation score is 0.500000 (1 passed, 1 failed, 0 duplicated, 0 skipped, total is 2)",
+	)
+}
+
+func TestTagged(t *testing.T) {
+	testMain(
+		t,
+		"../../example",
+		[]string{"--debug", "--exec-timeout", "1", "--test-tags", "tagged", "github.com/zimmski/go-mutesting/example"},
+		returnOk,
+		"The mutation score is 0.476190 (10 passed, 11 failed, 8 duplicated, 0 skipped, total is 21)",
 	)
 }
 
