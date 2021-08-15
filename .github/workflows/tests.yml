@@ -1,0 +1,61 @@
+name: Tests
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+
+  tests:
+    name: Test code
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        go:
+          - ^1.14
+          - ^1.15
+          - ^1.16
+          - ^1
+        os:
+          - ubuntu-latest
+          - macos-latest
+    steps:
+
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: ${{ matrix.go }}
+
+    - name: Check out code
+      uses: actions/checkout@v2
+
+    - name: Checkout to the latest tag
+      run: |
+        # Fetch all tags
+        git fetch --depth=1 --tags
+        # Get the latest tag
+        VERS=$(git tag -l | sort -Vr | head -n1)
+        # Fetch everything to the latest tag
+        git fetch --shallow-since=$(git log $VERS -1 --format=%at)
+      if: ${{ github.event_name == 'push' }} # only when built from master
+
+    - name: Install dependencies
+      run: |
+        make install-dependencies
+        make install-tools
+        make install
+
+    - name: Linting
+      run: make lint
+
+    - name: Testing
+      run: |
+        make test-verbose-with-coverage
+        gover
+
+    - name: Coverage
+      run: goveralls -coverprofile=gover.coverprofile -service=github
+      env:
+        COVERALLS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
