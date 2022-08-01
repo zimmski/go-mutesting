@@ -1,8 +1,10 @@
 package branch
 
 import (
+	"fmt"
 	"go/ast"
 	"go/types"
+	"strings"
 
 	"github.com/zimmski/go-mutesting/astutil"
 	"github.com/zimmski/go-mutesting/mutator"
@@ -20,25 +22,24 @@ func MutatorIf(pkg *types.Package, info *types.Info, node ast.Node) []mutator.Mu
 	}
 
 	old := n.Body.List
-
-	return []mutator.Mutation{
-		{
-			Change: func() {
-				containsErr := strings.Contains(fmt.Sprintf("%v", n.Cond), "err")
-				containsNilCheck := strings.Contains(fmt.Sprintf("%v", n.Cond), "!= nil")
-​
-				if !(containsErr && containsNilCheck && len(n.Body.List) == 1) {
-					fmt.Println("Contains error: false\n", "Expression: ", n.Cond)
+	
+	containsErr := strings.Contains(fmt.Sprintf("%v", n.Cond), "err")
+	containsNilCheck := strings.Contains(fmt.Sprintf("%v", n.Cond), "!= nil")
+	
+	if containsErr && containsNilCheck && len(n.Body.List) == 1 {
+		return nil
+	} else {
+		return []mutator.Mutation{
+			{
+				Change: func() {
 					n.Body.List = []ast.Stmt{
 						astutil.CreateNoopOfStatement(pkg, info, n.Body),
 					}
-				} else {
-					fmt.Println("Skipped\n", "Expression: ", n.Cond)
-				}
+				},
+				Reset: func() {
+					n.Body.List = old
+				},
 			},
-			Reset: func() {
-				n.Body.List = old
-			},
-		},
+		}
 	}
 }
