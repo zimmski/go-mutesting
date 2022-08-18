@@ -64,10 +64,18 @@ Mutation testing is also especially interesting for comparing automatically gene
 
 ## <a name="how-do-i-use-go-mutesting"></a>How do I use go-mutesting?
 
-go-mutesting includes a binary which is go-getable.
+### Install
+
+**Go version < 1.16:**
 
 ```bash
-go get -t -v github.com/zimmski/go-mutesting/...
+GO111MODULE=on go get github.com/zimmski/go-mutesting/cmd/go-mutesting@latest
+```
+
+**Go 1.16+:**
+
+```bash
+go install github.com/zimmski/go-mutesting/cmd/go-mutesting@latest
 ```
 
 The binary's help can be invoked by executing the binary without arguments or with the `--help` argument.
