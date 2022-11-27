@@ -1,7 +1,6 @@
 package cosmos
 
 import (
-	"fmt"
 	"go/ast"
 	"go/types"
 
@@ -12,7 +11,6 @@ func init() {
 	mutator.Register("cosmos/comparison", MutatorComparisonCosmos)
 }
 
-// TODO: add support for sdk arithmetic
 var comparisonMutations = map[string]string{
 	"GT": "LTE",
 	"LT": "GTE",
@@ -20,7 +18,7 @@ var comparisonMutations = map[string]string{
 	"LTE": "GT",
 }
 
-// MutatorComparison implements a mutator to change comparisons.
+// MutatorComparisonCosmos implements a mutator to change Cosmos SDK comparisons.
 func MutatorComparisonCosmos(pkg *types.Package, info *types.Info, node ast.Node) []mutator.Mutation {
 	n, ok := node.(*ast.Ident)
 	if !ok {
@@ -33,7 +31,6 @@ func MutatorComparisonCosmos(pkg *types.Package, info *types.Info, node ast.Node
 	}
 
 	o := n.Name
-	// TODO: add support for sdk arithmetic
 	r, ok := comparisonMutations[n.Name]
 	if !ok {
 		return nil
@@ -42,7 +39,6 @@ func MutatorComparisonCosmos(pkg *types.Package, info *types.Info, node ast.Node
 	return []mutator.Mutation{
 		{
 			Change: func() {
-				fmt.Println("Name: ", n.Name)
 				n.Name = r
 			},
 			Reset: func() {
