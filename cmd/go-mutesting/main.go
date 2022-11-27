@@ -28,12 +28,6 @@ import (
 	_ "github.com/osmosis-labs/go-mutesting/mutator/branch"
 	_ "github.com/osmosis-labs/go-mutesting/mutator/expression"
 	_ "github.com/osmosis-labs/go-mutesting/mutator/statement"
-	// "github.com/zimmski/go-mutesting"
-	// "github.com/zimmski/go-mutesting/astutil"
-	// "github.com/zimmski/go-mutesting/mutator"
-	// _ "github.com/zimmski/go-mutesting/mutator/branch"
-	// _ "github.com/zimmski/go-mutesting/mutator/expression"
-	// _ "github.com/zimmski/go-mutesting/mutator/statement"
 )
 
 const (
