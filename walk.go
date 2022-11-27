@@ -6,7 +6,8 @@ import (
 	"go/types"
 	"strings"
 
-	"github.com/zimmski/go-mutesting/mutator"
+	"github.com/osmosis-labs/go-mutesting/mutator"
+	// "github.com/zimmski/go-mutesting/mutator"
 )
 
 // CountWalk returns the number of corresponding mutations for a given mutator.
@@ -43,7 +44,11 @@ func (w *countWalk) Visit(node ast.Node) ast.Visitor {
 }
 
 // MutateWalk mutates the given node with the given mutator returning a channel to control the mutation steps.
-// It traverses the AST of the given node and calls the method Check of the given mutator to verify that a node can be mutated by the mutator. If a node can be mutated the method Mutate of the given mutator is executed with the node and the control channel. After completion of the traversal the control channel is closed.
+//
+// It traverses the AST of the given node and calls the method `Check` of the given mutator to verify that a node can be mutated by the mutator.
+// If a node can be mutated the method `Mutate` of the given mutator is executed with the node and the control channel. 
+//
+// After completion of the traversal the control channel is closed.
 func MutateWalk(pkg *types.Package, info *types.Info, node ast.Node, m mutator.Mutator) chan bool {
 	w := &mutateWalk{
 		changed: make(chan bool),
@@ -53,6 +58,7 @@ func MutateWalk(pkg *types.Package, info *types.Info, node ast.Node, m mutator.M
 	}
 
 	go func() {
+		// runs `mutateWalk`s `Visit` function on each node as implemented below
 		ast.Walk(w, node)
 
 		close(w.changed)
@@ -74,11 +80,14 @@ func (w *mutateWalk) Visit(node ast.Node) ast.Visitor {
 		return w
 	}
 
+	// loops through all possible mutations for node and runs them
 	for _, m := range w.mutator(w.pkg, w.info, node) {
+		// runs mutation logic on current node
 		m.Change()
 		w.changed <- true
 		<-w.changed
 
+		// resets node to original state
 		m.Reset()
 		w.changed <- true
 		<-w.changed
