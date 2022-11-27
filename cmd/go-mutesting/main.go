@@ -26,6 +26,7 @@ import (
 	"github.com/osmosis-labs/go-mutesting/astutil"
 	"github.com/osmosis-labs/go-mutesting/mutator"
 	_ "github.com/osmosis-labs/go-mutesting/mutator/branch"
+	_ "github.com/osmosis-labs/go-mutesting/mutator/cosmos"
 	_ "github.com/osmosis-labs/go-mutesting/mutator/expression"
 	_ "github.com/osmosis-labs/go-mutesting/mutator/statement"
 )
