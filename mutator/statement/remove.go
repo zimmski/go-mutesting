@@ -4,7 +4,9 @@ import (
 	"go/ast"
 	"go/token"
 	"go/types"
+	"strings"
 
+	mutesting "github.com/osmosis-labs/go-mutesting"
 	"github.com/osmosis-labs/go-mutesting/astutil"
 	"github.com/osmosis-labs/go-mutesting/mutator"
 )
@@ -35,6 +37,11 @@ func MutatorRemoveStatement(pkg *types.Package, info *types.Info, node ast.Node)
 		l = n.List
 	case *ast.CaseClause:
 		l = n.Body
+	}
+
+	containsPanic := strings.Contains(mutesting.GetNodeASTString(node), "panic")
+	if containsPanic && len(l) == 1 {
+		return nil
 	}
 
 	var mutations []mutator.Mutation

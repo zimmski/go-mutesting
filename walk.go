@@ -1,12 +1,16 @@
 package mutesting
 
 import (
+	"bytes"
 	"fmt"
 	"go/ast"
 	"go/types"
+	"io"
+	"os"
 	"strings"
 
 	"github.com/osmosis-labs/go-mutesting/mutator"
+	"github.com/zimmski/go-mutesting"
 )
 
 // CountWalk returns the number of corresponding mutations for a given mutator.
@@ -119,4 +123,29 @@ func (w *printWalk) Visit(node ast.Node) ast.Visitor {
 	}
 
 	return w
+}
+
+// Gets full AST of input node and its children and returns a string parsed version
+func GetNodeASTString(node ast.Node) string {
+	// save original stdOut
+	oldOut := os.Stdout
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+
+	mutesting.PrintWalk(node)
+
+	outC := make(chan string)
+	// move output to a separate goroutine to not block stdOut indefinitely
+	go func() {
+		var buf bytes.Buffer
+		io.Copy(&buf, r)
+		outC <- buf.String()
+	}()
+
+	// restore original state
+	w.Close()
+	os.Stdout = oldOut
+	out := <-outC
+
+	return out
 }
