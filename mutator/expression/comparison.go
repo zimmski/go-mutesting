@@ -12,7 +12,6 @@ func init() {
 	mutator.Register("expression/comparison", MutatorComparison)
 }
 
-// TODO: add support for sdk arithmetic
 var comparisonMutations = map[token.Token]token.Token{
 	token.LSS: token.LEQ,
 	token.LEQ: token.LSS,
@@ -28,7 +27,6 @@ func MutatorComparison(pkg *types.Package, info *types.Info, node ast.Node) []mu
 	}
 
 	o := n.Op
-	// TODO: add support for sdk arithmetic
 	r, ok := comparisonMutations[n.Op]
 	if !ok {
 		return nil
