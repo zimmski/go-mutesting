@@ -22,12 +22,13 @@ import (
 	"github.com/zimmski/go-tool/importing"
 	"github.com/zimmski/osutil"
 
-	"github.com/zimmski/go-mutesting"
-	"github.com/zimmski/go-mutesting/astutil"
-	"github.com/zimmski/go-mutesting/mutator"
-	_ "github.com/zimmski/go-mutesting/mutator/branch"
-	_ "github.com/zimmski/go-mutesting/mutator/expression"
-	_ "github.com/zimmski/go-mutesting/mutator/statement"
+	"github.com/osmosis-labs/go-mutesting"
+	"github.com/osmosis-labs/go-mutesting/astutil"
+	"github.com/osmosis-labs/go-mutesting/mutator"
+	_ "github.com/osmosis-labs/go-mutesting/mutator/branch"
+	_ "github.com/osmosis-labs/go-mutesting/mutator/cosmos"
+	_ "github.com/osmosis-labs/go-mutesting/mutator/expression"
+	_ "github.com/osmosis-labs/go-mutesting/mutator/statement"
 )
 
 const (
@@ -75,6 +76,7 @@ type options struct {
 	} `positional-args:"true" required:"true"`
 }
 
+// Ensure input arguments are valid
 func checkArguments(args []string, opts *options) (bool, int) {
 	p := flags.NewNamedParser("go-mutesting", flags.None)
 
@@ -120,6 +122,7 @@ func debug(opts *options, format string, args ...interface{}) {
 	}
 }
 
+// note: this function is only used for helping with debugging
 func verbose(opts *options, format string, args ...interface{}) {
 	if opts.General.Verbose || opts.General.Debug {
 		fmt.Printf(format+"\n", args...)
@@ -166,11 +169,13 @@ func mainCmd(args []string) int {
 		return exitCode
 	}
 
+	// gets files to be tested and populates `opts` to match inputs
 	files := importing.FilesOfArgs(opts.Remaining.Targets)
 	if len(files) == 0 {
 		return exitError("Could not find any suitable Go source files")
 	}
 
+	// if either list or print options were input as true, runs their respective ops and returns
 	if opts.Files.ListFiles {
 		for _, file := range files {
 			fmt.Println(file)
@@ -194,6 +199,7 @@ func mainCmd(args []string) int {
 		return returnOk
 	}
 
+	// if any blacklisted files are passed in, returns error
 	if len(opts.Files.Blacklist) > 0 {
 		for _, f := range opts.Files.Blacklist {
 			c, err := ioutil.ReadFile(f)
@@ -215,10 +221,14 @@ func mainCmd(args []string) int {
 		}
 	}
 
+	// begin mutation process
 	var mutators []mutatorItem
 
 MUTATOR:
+	// create a mutator for each type and populate `mutators` list defined above
+	// note: includes all mutators defined in `mutator` folder by default
 	for _, name := range mutator.List() {
+		// if current mutator is disabled, skip it
 		if len(opts.Mutator.DisableMutators) > 0 {
 			for _, d := range opts.Mutator.DisableMutators {
 				pattern := strings.HasSuffix(d, "*")
@@ -238,19 +248,23 @@ MUTATOR:
 		})
 	}
 
+	// creates temporary directory to save mutations into
 	tmpDir, err := ioutil.TempDir("", "go-mutesting-")
 	if err != nil {
 		panic(err)
 	}
 	verbose(opts, "Save mutations into %q", tmpDir)
 
+	// collect input commands to run on files post-mutation
 	var execs []string
 	if opts.Exec.Exec != "" {
 		execs = strings.Split(opts.Exec.Exec, " ")
 	}
 
+	// place to collect high-level mutation testing results
 	stats := &mutationStats{}
 
+	// run each allowed mutator on each file
 	for _, file := range files {
 		verbose(opts, "Mutate %q", file)
 
@@ -266,6 +280,7 @@ MUTATOR:
 
 		tmpFile := tmpDir + "/" + file
 
+		// copy pre-mutation file to a temporary file for safekeeping
 		originalFile := fmt.Sprintf("%s.original", tmpFile)
 		err = osutil.CopyFile(file, originalFile)
 		if err != nil {
@@ -273,8 +288,10 @@ MUTATOR:
 		}
 		debug(opts, "Save original into %q", originalFile)
 
+		// tracks local mutation number (resets for each new file)
 		mutationID := 0
 
+		// (core mutation logic) apply relevant function filters and run mutation
 		if opts.Filter.Match != "" {
 			m, err := regexp.Compile(opts.Filter.Match)
 			if err != nil {
@@ -291,6 +308,7 @@ MUTATOR:
 		}
 	}
 
+	// unless explicitly requested otherwise, delete all mutations
 	if !opts.General.DoNotRemoveTmpFolder {
 		err = os.RemoveAll(tmpDir)
 		if err != nil {
@@ -299,6 +317,7 @@ MUTATOR:
 		debug(opts, "Remove %q", tmpDir)
 	}
 
+	// if applicable, print high-level mutation results
 	if !opts.Exec.NoExec {
 		fmt.Printf("The mutation score is %f (%d passed, %d failed, %d duplicated, %d skipped, total is %d)\n", stats.Score(), stats.passed, stats.failed, stats.duplicated, stats.skipped, stats.Total())
 	} else {
@@ -308,12 +327,16 @@ MUTATOR:
 	return returnOk
 }
 
+// mutate runs all passed in mutators on all applicable parts of a single file
 func mutate(opts *options, mutators []mutatorItem, mutationBlackList map[string]struct{}, mutationID int, pkg *types.Package, info *types.Info, file string, fset *token.FileSet, src ast.Node, node ast.Node, tmpFile string, execs []string, stats *mutationStats) int {
+	// loop through each mutator (default: branch, expression, and statement)
 	for _, m := range mutators {
 		debug(opts, "Mutator %s", m.Name)
 
+		// recursively walk through file AST and mutate node-by-node
 		changed := mutesting.MutateWalk(pkg, info, node, m.Mutator)
 
+		// loop through mutations and collect high-level stats
 		for {
 			_, ok := <-changed
 
@@ -322,6 +345,7 @@ func mutate(opts *options, mutators []mutatorItem, mutationBlackList map[string]
 			}
 
 			mutationFile := fmt.Sprintf("%s.%d", tmpFile, mutationID)
+			// save original file's AST for safekeeping and to track if it has been mutated already
 			checksum, duplicate, err := saveAST(mutationBlackList, mutationFile, fset, src)
 			if err != nil {
 				fmt.Printf("INTERNAL ERROR %s\n", err.Error())
@@ -332,7 +356,9 @@ func mutate(opts *options, mutators []mutatorItem, mutationBlackList map[string]
 			} else {
 				debug(opts, "Save mutation into %q with checksum %s", mutationFile, checksum)
 
+				// `NoExec` field is set to false if caller wants to mutate files (false by default)
 				if !opts.Exec.NoExec {
+					// execute mutation on file
 					execExitCode := mutateExec(opts, pkg, file, src, mutationFile, execs)
 
 					debug(opts, "Exited with %d", execExitCode)
@@ -372,9 +398,11 @@ func mutate(opts *options, mutators []mutatorItem, mutationBlackList map[string]
 }
 
 func mutateExec(opts *options, pkg *types.Package, file string, src ast.Node, mutationFile string, execs []string) (execExitCode int) {
+	// if no execs specified, run diff check on mutated file
 	if len(execs) == 0 {
 		debug(opts, "Execute built-in exec command for mutation")
 
+		// run diff check on mutation vs. original
 		diff, err := exec.Command("diff", "-u", file, mutationFile).CombinedOutput()
 		if err == nil {
 			execExitCode = 0
@@ -397,6 +425,8 @@ func mutateExec(opts *options, pkg *types.Package, file string, src ast.Node, mu
 		if err != nil {
 			panic(err)
 		}
+
+		// overwrite mutated file with original file stored in temp
 		err = osutil.CopyFile(mutationFile, file)
 		if err != nil {
 			panic(err)
@@ -407,6 +437,7 @@ func mutateExec(opts *options, pkg *types.Package, file string, src ast.Node, mu
 			pkgName += "/..."
 		}
 
+		// run go tests for file's package on mutated file
 		test, err := exec.Command("go", "test", "-timeout", fmt.Sprintf("%ds", opts.Exec.Timeout), pkgName).CombinedOutput()
 		if err == nil {
 			execExitCode = 0
@@ -490,6 +521,8 @@ func main() {
 	os.Exit(mainCmd(os.Args[1:]))
 }
 
+// saveAST saves AST to a file with filename `file` and returns the checksum alongside a bool indicating whether
+// file checksum has been saved before (i.e. exists in `mutationBlackList`)
 func saveAST(mutationBlackList map[string]struct{}, file string, fset *token.FileSet, node ast.Node) (string, bool, error) {
 	var buf bytes.Buffer
 
@@ -502,6 +535,7 @@ func saveAST(mutationBlackList map[string]struct{}, file string, fset *token.Fil
 
 	checksum := fmt.Sprintf("%x", h.Sum(nil))
 
+	// if checksum already exists in past mutations, return true for duplicate
 	if _, ok := mutationBlackList[checksum]; ok {
 		return checksum, true, nil
 	}

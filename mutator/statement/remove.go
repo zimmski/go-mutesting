@@ -4,9 +4,11 @@ import (
 	"go/ast"
 	"go/token"
 	"go/types"
+	"strings"
 
-	"github.com/zimmski/go-mutesting/astutil"
-	"github.com/zimmski/go-mutesting/mutator"
+	mutesting "github.com/osmosis-labs/go-mutesting"
+	"github.com/osmosis-labs/go-mutesting/astutil"
+	"github.com/osmosis-labs/go-mutesting/mutator"
 )
 
 func init() {
@@ -35,6 +37,20 @@ func MutatorRemoveStatement(pkg *types.Package, info *types.Info, node ast.Node)
 		l = n.List
 	case *ast.CaseClause:
 		l = n.Body
+	}
+
+	// If the statement block only has one item in it (i.e. AST sub-tree is only 1 level deep),
+	// we check to see if that statement is a panic.
+	//
+	// Since we only target AST leaves here, all isolated panics that are nested in conditionals
+	// are still included in mutations in earlier conditional mutations (which run before statement
+	// mutations), and only those that are nested in error checks are filtered (this is due to an
+	// AST quirk where it does not treat error check panics as conditionals and instead directly 
+	// labels them as statements).
+	if len(l) == 1 {
+		if containsPanic := strings.Contains(mutesting.GetNodeASTString(node), "panic"); containsPanic {
+			return nil
+		}
 	}
 
 	var mutations []mutator.Mutation
