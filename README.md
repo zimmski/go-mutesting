@@ -67,7 +67,7 @@ Mutation testing is also especially interesting for comparing automatically gene
 go-mutesting includes a binary which is go-getable.
 
 ```bash
-go get -t -v github.com/zimmski/go-mutesting/...
+go install -v github.com/zimmski/go-mutesting/...
 ```
 
 The binary's help can be invoked by executing the binary without arguments or with the `--help` argument.
