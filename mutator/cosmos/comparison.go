@@ -12,8 +12,8 @@ func init() {
 }
 
 var comparisonMutations = map[string]string{
-	"GT": "LTE",
-	"LT": "GTE",
+	"GT":  "LTE",
+	"LT":  "GTE",
 	"GTE": "LT",
 	"LTE": "GT",
 }

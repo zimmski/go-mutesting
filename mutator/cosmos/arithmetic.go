@@ -12,10 +12,18 @@ func init() {
 }
 
 var arithmeticMutations = map[string]string{
-	"Add": "Sub",
-	"Sub": "Add",
-	"Mul": "Quo",
-	"Quo": "Mul",
+	"Add":            "Sub",
+	"Sub":            "Add",
+	"Mul":            "Quo",
+	"Quo":            "Mul",
+	"QuoTruncate":    "QuoRoundUp",
+	"MulTruncate":    "MulRoundUp",
+	"QuoRoundUp":     "QuoTruncate",
+	"MulRoundUp":     "MulTruncate",
+	"TruncateInt":    "RoundInt",
+	"RoundInt":       "TruncateInt",
+	"QuoRoundupMut":  "QuoTruncateMut",
+	"QuoTruncateMut": "QuoRoundupMut",
 }
 
 // MutatorArithmeticCosmos implements a mutator to change Cosmos SDK arithmetic.
